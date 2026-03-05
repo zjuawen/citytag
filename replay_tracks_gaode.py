@@ -10,6 +10,7 @@ import os
 import webbrowser
 from datetime import datetime
 from pathlib import Path
+import math
 
 
 def parse_timestamp_to_datetime(timestamp_str):
@@ -26,6 +27,47 @@ def parse_timestamp_to_datetime(timestamp_str):
         return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
     except:
         return None
+
+
+def wgs84_to_gcj02(lng, lat):
+    """
+    将WGS84坐标系（GPS坐标）转换为GCJ02坐标系（高德地图坐标）
+    
+    Args:
+        lng: 经度（WGS84）
+        lat: 纬度（WGS84）
+    
+    Returns:
+        tuple: (经度（GCJ02）, 纬度（GCJ02）)
+    """
+    a = 6378245.0  # 长半轴
+    ee = 0.00669342162296594323  # 偏心率平方
+    
+    def transform_lat(x, y):
+        ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * math.sqrt(abs(x))
+        ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(y * math.pi) + 40.0 * math.sin(y / 3.0 * math.pi)) * 2.0 / 3.0
+        ret += (160.0 * math.sin(y / 12.0 * math.pi) + 320 * math.sin(y * math.pi / 30.0)) * 2.0 / 3.0
+        return ret
+    
+    def transform_lng(x, y):
+        ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * math.sqrt(abs(x))
+        ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(x * math.pi) + 40.0 * math.sin(x / 3.0 * math.pi)) * 2.0 / 3.0
+        ret += (150.0 * math.sin(x / 12.0 * math.pi) + 300.0 * math.sin(x / 30.0 * math.pi)) * 2.0 / 3.0
+        return ret
+    
+    d_lat = transform_lat(lng - 105.0, lat - 35.0)
+    d_lng = transform_lng(lng - 105.0, lat - 35.0)
+    rad_lat = lat / 180.0 * math.pi
+    magic = math.sin(rad_lat)
+    magic = 1 - ee * magic * magic
+    sqrt_magic = math.sqrt(magic)
+    d_lat = (d_lat * 180.0) / ((a * (1 - ee)) / (magic * sqrt_magic) * math.pi)
+    d_lng = (d_lng * 180.0) / (a / sqrt_magic * math.cos(rad_lat) * math.pi)
+    mg_lat = lat + d_lat
+    mg_lng = lng + d_lng
+    return mg_lng, mg_lat
 
 
 def load_track_points(json_file):
@@ -73,6 +115,10 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
         accuracy = point.get('accuracy', 'N/A')
         battery = point.get('batteryLevel', 'N/A')
         
+        # 将GPS坐标（WGS84）转换为高德地图坐标（GCJ02）
+        if lat != 0 and lng != 0:
+            lng, lat = wgs84_to_gcj02(lng, lat)
+        
         # 将时间戳字符串转换为时间戳（毫秒）
         timestamp_ms = 0
         if timestamp:
@@ -95,10 +141,10 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             'index': i + 1
         })
     
-    # 计算中心点和边界
-    if track_points:
-        lats = [p.get('latitude', 0) for p in track_points]
-        lngs = [p.get('longitude', 0) for p in track_points]
+    # 计算中心点和边界（使用转换后的坐标）
+    if points_js:
+        lats = [p['lat'] for p in points_js]
+        lngs = [p['lng'] for p in points_js]
         center_lat = sum(lats) / len(lats)
         center_lng = sum(lngs) / len(lngs)
     else:
