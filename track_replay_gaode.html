@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>轨迹回放 - dd</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .header-info {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #ee5a5a;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .speed-control label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .speed-control select {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .status {
+            margin-left: auto;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        #mapContainer {
+            flex: 1;
+            width: 100%;
+            position: relative;
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 200px;
+            z-index: 1000;
+            font-size: 13px;
+        }
+        
+        .info-panel h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 14px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        .info-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .info-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+            width: 0%;
+        }
+        
+        .timeline-container {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .timeline-date {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .timeline-slider-container {
+            position: relative;
+            width: 100%;
+            height: 40px;
+        }
+        
+        .timeline-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+        }
+        
+        .timeline-slider::-webkit-slider-thumb:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+        
+        .timeline-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+        }
+        
+        .timeline-slider::-moz-range-thumb:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+        
+        .timeline-marks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .timeline-mark {
+            flex: 1;
+            text-align: center;
+        }
+    </style>
+    <!-- 高德地图API - 需要申请API Key -->
+    <!-- 申请地址: https://console.amap.com/dev/key/app -->
+    <!-- 如果使用测试Key，地图上会显示水印 -->
+    <script src="https://webapi.amap.com/maps?v=2.0&key=be36223b9dab65bb6b1f4bd5f9bb9442"></script>
+    <script src="https://webapi.amap.com/ui/1.1/main.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>📍 轨迹回放</h1>
+        <div class="header-info">
+            设备: dd (SN: 201607813254) | 总点数: 69
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <button class="btn-primary" onclick="startReplay()">▶ 开始回放</button>
+            <button class="btn-secondary" onclick="pauseReplay()">⏸ 暂停</button>
+            <button class="btn-secondary" onclick="stopReplay()">⏹ 停止</button>
+            <button class="btn-secondary" onclick="resetReplay()">↺ 重置</button>
+        </div>
+        
+        <div class="speed-control">
+            <label>回放速度:</label>
+            <select id="speedSelect" onchange="changeSpeed()">
+                <option value="0.5">0.5x</option>
+                <option value="1" selected>1x</option>
+                <option value="2">2x</option>
+                <option value="5">5x</option>
+                <option value="10">10x</option>
+            </select>
+        </div>
+        
+        <div class="status" id="status">准备就绪</div>
+    </div>
+    
+    <div class="timeline-container">
+        <div class="timeline-header">
+            <span class="timeline-label">📅 时间轴</span>
+            <span class="timeline-date" id="timelineDate">-</span>
+        </div>
+        <div class="timeline-slider-container">
+            <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="100" value="0" step="1">
+            <div class="timeline-marks" id="timelineMarks"></div>
+        </div>
+    </div>
+    
+    <div id="mapContainer"></div>
+    
+    <div class="info-panel">
+        <h3>当前位置信息</h3>
+        <div class="info-item">
+            <span class="info-label">序号:</span>
+            <span class="info-value" id="currentIndex">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">时间:</span>
+            <span class="info-value" id="currentTime">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">纬度:</span>
+            <span class="info-value" id="currentLat">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">经度:</span>
+            <span class="info-value" id="currentLng">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">精度:</span>
+            <span class="info-value" id="currentAccuracy">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">电量:</span>
+            <span class="info-value" id="currentBattery">-</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <script>
+        // 轨迹点数据
+        const trackPoints = [
+        {
+                "lat": 26.09117,
+                "lng": 119.25496,
+                "timestamp": "2026-02-24 18:24:21",
+                "timestampMs": 1771928661000,
+                "accuracy": "113",
+                "battery": 100,
+                "index": 1
+        },
+        {
+                "lat": 26.068333,
+                "lng": 119.27633,
+                "timestamp": "2026-02-24 19:27:22",
+                "timestampMs": 1771932442000,
+                "accuracy": "124",
+                "battery": 100,
+                "index": 2
+        },
+        {
+                "lat": 26.065287,
+                "lng": 119.28429,
+                "timestamp": "2026-02-24 19:31:43",
+                "timestampMs": 1771932703000,
+                "accuracy": "138",
+                "battery": 100,
+                "index": 3
+        },
+        {
+                "lat": 26.068537,
+                "lng": 119.28686,
+                "timestamp": "2026-02-24 19:33:56",
+                "timestampMs": 1771932836000,
+                "accuracy": "111",
+                "battery": 100,
+                "index": 4
+        },
+        {
+                "lat": 26.093803,
+                "lng": 119.25629,
+                "timestamp": "2026-02-25 08:58:30",
+                "timestampMs": 1771981110000,
+                "accuracy": "119",
+                "battery": 100,
+                "index": 5
+        },
+        {
+                "lat": 26.079863,
+                "lng": 119.278915,
+                "timestamp": "2026-02-25 09:34:16",
+                "timestampMs": 1771983256000,
+                "accuracy": "140",
+                "battery": 100,
+                "index": 6
+        },
+        {
+                "lat": 26.07133,
+                "lng": 119.285645,
+                "timestamp": "2026-02-25 10:02:31",
+                "timestampMs": 1771984951000,
+                "accuracy": "105",
+                "battery": 100,
+                "index": 7
+        },
+        {
+                "lat": 26.075026,
+                "lng": 119.25832,
+                "timestamp": "2026-02-25 10:22:04",
+                "timestampMs": 1771986124000,
+                "accuracy": "94",
+                "battery": 100,
+                "index": 8
+        },
+        {
+                "lat": 26.086224,
+                "lng": 119.250275,
+                "timestamp": "2026-02-25 10:27:43",
+                "timestampMs": 1771986463000,
+                "accuracy": "93",
+                "battery": 100,
+                "index": 9
+        },
+        {
+                "lat": 26.090794,
+                "lng": 119.25433,
+                "timestamp": "2026-02-25 16:02:58",
+                "timestampMs": 1772006578000,
+                "accuracy": "120",
+                "battery": 100,
+                "index": 10
+        },
+        {
+                "lat": 26.080246,
+                "lng": 119.25116,
+                "timestamp": "2026-02-27 17:08:10",
+                "timestampMs": 1772183290000,
+                "accuracy": "167",
+                "battery": 100,
+                "index": 11
+        },
+        {
+                "lat": 26.091173,
+                "lng": 119.25496,
+                "timestamp": "2026-02-27 18:41:20",
+                "timestampMs": 1772188880000,
+                "accuracy": "107",
+                "battery": 100,
+                "index": 12
+        },
+        {
+                "lat": 26.090294,
+                "lng": 119.25311,
+                "timestamp": "2026-02-28 08:42:29",
+                "timestampMs": 1772239349000,
+                "accuracy": "140",
+                "battery": 100,
+                "index": 13
+        },
+        {
+                "lat": 26.070145,
+                "lng": 119.30001,
+                "timestamp": "2026-02-28 11:44:49",
+                "timestampMs": 1772250289000,
+                "accuracy": "102",
+                "battery": 100,
+                "index": 14
+        },
+        {
+                "lat": 26.070059,
+                "lng": 119.29887,
+                "timestamp": "2026-02-28 12:05:07",
+                "timestampMs": 1772251507000,
+                "accuracy": "59",
+                "battery": 100,
+                "index": 15
+        },
+        {
+                "lat": 26.065996,
+                "lng": 119.28998,
+                "timestamp": "2026-02-28 12:09:49",
+                "timestampMs": 1772251789000,
+                "accuracy": "98",
+                "battery": 100,
+                "index": 16
+        },
+        {
+                "lat": 26.090597,
+                "lng": 119.25335,
+                "timestamp": "2026-02-28 12:33:30",
+                "timestampMs": 1772253210000,
+                "accuracy": "98",
+                "battery": 100,
+                "index": 17
+        },
+        {
+                "lat": 26.091225,
+                "lng": 119.25496,
+                "timestamp": "2026-02-28 17:58:21",
+                "timestampMs": 1772272701000,
+                "accuracy": "108",
+                "battery": 100,
+                "index": 18
+        },
+        {
+                "lat": 26.103334,
+                "lng": 119.277954,
+                "timestamp": "2026-03-02 08:22:11",
+                "timestampMs": 1772410931000,
+                "accuracy": "112",
+                "battery": 100,
+                "index": 19
+        },
+        {
+                "lat": 26.101412,
+                "lng": 119.28775,
+                "timestamp": "2026-03-02 08:25:07",
+                "timestampMs": 1772411107000,
+                "accuracy": "99",
+                "battery": 100,
+                "index": 20
+        },
+        {
+                "lat": 26.101322,
+                "lng": 119.289055,
+                "timestamp": "2026-03-02 08:26:53",
+                "timestampMs": 1772411213000,
+                "accuracy": "80",
+                "battery": 100,
+                "index": 21
+        },
+        {
+                "lat": 26.102356,
+                "lng": 119.28879,
+                "timestamp": "2026-03-02 08:28:47",
+                "timestampMs": 1772411327000,
+                "accuracy": "206",
+                "battery": 100,
+                "index": 22
+        },
+        {
+                "lat": 26.102642,
+                "lng": 119.29176,
+                "timestamp": "2026-03-02 08:29:04",
+                "timestampMs": 1772411344000,
+                "accuracy": "121",
+                "battery": 100,
+                "index": 23
+        },
+        {
+                "lat": 26.105345,
+                "lng": 119.30129,
+                "timestamp": "2026-03-02 08:33:10",
+                "timestampMs": 1772411590000,
+                "accuracy": "129",
+                "battery": 100,
+                "index": 24
+        },
+        {
+                "lat": 26.10281,
+                "lng": 119.30449,
+                "timestamp": "2026-03-02 08:35:33",
+                "timestampMs": 1772411733000,
+                "accuracy": "78",
+                "battery": 100,
+                "index": 25
+        },
+        {
+                "lat": 26.097221,
+                "lng": 119.30479,
+                "timestamp": "2026-03-02 16:34:54",
+                "timestampMs": 1772440494000,
+                "accuracy": "143",
+                "battery": 100,
+                "index": 26
+        },
+        {
+                "lat": 26.097557,
+                "lng": 119.30537,
+                "timestamp": "2026-03-02 17:19:46",
+                "timestampMs": 1772443186000,
+                "accuracy": "126",
+                "battery": 100,
+                "index": 27
+        },
+        {
+                "lat": 26.104727,
+                "lng": 119.29788,
+                "timestamp": "2026-03-02 17:53:10",
+                "timestampMs": 1772445190000,
+                "accuracy": "69",
+                "battery": 100,
+                "index": 28
+        },
+        {
+                "lat": 26.103876,
+                "lng": 119.294174,
+                "timestamp": "2026-03-02 17:54:15",
+                "timestampMs": 1772445255000,
+                "accuracy": "69",
+                "battery": 100,
+                "index": 29
+        },
+        {
+                "lat": 26.10327,
+                "lng": 119.29276,
+                "timestamp": "2026-03-02 17:54:37",
+                "timestampMs": 1772445277000,
+                "accuracy": "70",
+                "battery": 100,
+                "index": 30
+        },
+        {
+                "lat": 26.102758,
+                "lng": 119.28687,
+                "timestamp": "2026-03-02 17:58:44",
+                "timestampMs": 1772445524000,
+                "accuracy": "99",
+                "battery": 100,
+                "index": 31
+        },
+        {
+                "lat": 26.103569,
+                "lng": 119.28583,
+                "timestamp": "2026-03-02 17:59:01",
+                "timestampMs": 1772445541000,
+                "accuracy": "151",
+                "battery": 100,
+                "index": 32
+        },
+        {
+                "lat": 26.0973,
+                "lng": 119.25879,
+                "timestamp": "2026-03-02 18:08:26",
+                "timestampMs": 1772446106000,
+                "accuracy": "135",
+                "battery": 100,
+                "index": 33
+        },
+        {
+                "lat": 26.100815,
+                "lng": 119.27628,
+                "timestamp": "2026-03-03 08:26:31",
+                "timestampMs": 1772497591000,
+                "accuracy": "111",
+                "battery": 100,
+                "index": 34
+        },
+        {
+                "lat": 26.102077,
+                "lng": 119.28712,
+                "timestamp": "2026-03-03 08:31:16",
+                "timestampMs": 1772497876000,
+                "accuracy": "113",
+                "battery": 100,
+                "index": 35
+        },
+        {
+                "lat": 26.10092,
+                "lng": 119.28814,
+                "timestamp": "2026-03-03 08:32:08",
+                "timestampMs": 1772497928000,
+                "accuracy": "182",
+                "battery": 100,
+                "index": 36
+        },
+        {
+                "lat": 26.102343,
+                "lng": 119.291374,
+                "timestamp": "2026-03-03 08:34:00",
+                "timestampMs": 1772498040000,
+                "accuracy": "84",
+                "battery": 100,
+                "index": 37
+        },
+        {
+                "lat": 26.105131,
+                "lng": 119.30028,
+                "timestamp": "2026-03-03 08:36:31",
+                "timestampMs": 1772498191000,
+                "accuracy": "137",
+                "battery": 100,
+                "index": 38
+        },
+        {
+                "lat": 26.105158,
+                "lng": 119.301155,
+                "timestamp": "2026-03-03 08:36:52",
+                "timestampMs": 1772498212000,
+                "accuracy": "85",
+                "battery": 100,
+                "index": 39
+        },
+        {
+                "lat": 26.103786,
+                "lng": 119.30436,
+                "timestamp": "2026-03-03 08:42:20",
+                "timestampMs": 1772498540000,
+                "accuracy": "151",
+                "battery": 100,
+                "index": 40
+        },
+        {
+                "lat": 26.097498,
+                "lng": 119.3056,
+                "timestamp": "2026-03-03 13:22:15",
+                "timestampMs": 1772515335000,
+                "accuracy": "99",
+                "battery": 100,
+                "index": 41
+        },
+        {
+                "lat": 26.103056,
+                "lng": 119.30112,
+                "timestamp": "2026-03-03 17:24:21",
+                "timestampMs": 1772529861000,
+                "accuracy": "171",
+                "battery": 100,
+                "index": 42
+        },
+        {
+                "lat": 26.102257,
+                "lng": 119.28702,
+                "timestamp": "2026-03-03 17:31:46",
+                "timestampMs": 1772530306000,
+                "accuracy": "176",
+                "battery": 100,
+                "index": 43
+        },
+        {
+                "lat": 26.103151,
+                "lng": 119.27747,
+                "timestamp": "2026-03-03 17:36:55",
+                "timestampMs": 1772530615000,
+                "accuracy": "60",
+                "battery": 100,
+                "index": 44
+        },
+        {
+                "lat": 26.098232,
+                "lng": 119.26701,
+                "timestamp": "2026-03-03 17:39:57",
+                "timestampMs": 1772530797000,
+                "accuracy": "83",
+                "battery": 100,
+                "index": 45
+        },
+        {
+                "lat": 26.097956,
+                "lng": 119.26066,
+                "timestamp": "2026-03-03 17:41:30",
+                "timestampMs": 1772530890000,
+                "accuracy": "167",
+                "battery": 100,
+                "index": 46
+        },
+        {
+                "lat": 26.102867,
+                "lng": 119.28647,
+                "timestamp": "2026-03-04 08:26:35",
+                "timestampMs": 1772583995000,
+                "accuracy": "102",
+                "battery": 100,
+                "index": 47
+        },
+        {
+                "lat": 26.103842,
+                "lng": 119.29413,
+                "timestamp": "2026-03-04 08:29:47",
+                "timestampMs": 1772584187000,
+                "accuracy": "145",
+                "battery": 100,
+                "index": 48
+        },
+        {
+                "lat": 26.103407,
+                "lng": 119.29311,
+                "timestamp": "2026-03-04 08:29:50",
+                "timestampMs": 1772584190000,
+                "accuracy": "128",
+                "battery": 100,
+                "index": 49
+        },
+        {
+                "lat": 26.103973,
+                "lng": 119.2945,
+                "timestamp": "2026-03-04 08:30:05",
+                "timestampMs": 1772584205000,
+                "accuracy": "83",
+                "battery": 100,
+                "index": 50
+        },
+        {
+                "lat": 26.097593,
+                "lng": 119.30491,
+                "timestamp": "2026-03-04 08:39:56",
+                "timestampMs": 1772584796000,
+                "accuracy": "100",
+                "battery": 100,
+                "index": 51
+        },
+        {
+                "lat": 26.09739,
+                "lng": 119.3055,
+                "timestamp": "2026-03-04 13:18:33",
+                "timestampMs": 1772601513000,
+                "accuracy": "86",
+                "battery": 100,
+                "index": 52
+        },
+        {
+                "lat": 26.101864,
+                "lng": 119.30175,
+                "timestamp": "2026-03-04 17:48:22",
+                "timestampMs": 1772617702000,
+                "accuracy": "80",
+                "battery": 100,
+                "index": 53
+        },
+        {
+                "lat": 26.104345,
+                "lng": 119.28479,
+                "timestamp": "2026-03-04 17:59:19",
+                "timestampMs": 1772618359000,
+                "accuracy": "93",
+                "battery": 100,
+                "index": 54
+        },
+        {
+                "lat": 26.104374,
+                "lng": 119.28071,
+                "timestamp": "2026-03-04 18:00:26",
+                "timestampMs": 1772618426000,
+                "accuracy": "92",
+                "battery": 100,
+                "index": 55
+        },
+        {
+                "lat": 26.104614,
+                "lng": 119.27752,
+                "timestamp": "2026-03-04 18:01:18",
+                "timestampMs": 1772618478000,
+                "accuracy": "122",
+                "battery": 100,
+                "index": 56
+        },
+        {
+                "lat": 26.104269,
+                "lng": 119.27884,
+                "timestamp": "2026-03-04 18:02:29",
+                "timestampMs": 1772618549000,
+                "accuracy": "122",
+                "battery": 100,
+                "index": 57
+        },
+        {
+                "lat": 26.097797,
+                "lng": 119.261856,
+                "timestamp": "2026-03-04 18:07:03",
+                "timestampMs": 1772618823000,
+                "accuracy": "107",
+                "battery": 100,
+                "index": 58
+        },
+        {
+                "lat": 26.097717,
+                "lng": 119.25969,
+                "timestamp": "2026-03-04 18:07:33",
+                "timestampMs": 1772618853000,
+                "accuracy": "57",
+                "battery": 100,
+                "index": 59
+        },
+        {
+                "lat": 26.090979,
+                "lng": 119.25475,
+                "timestamp": "2026-03-04 18:28:35",
+                "timestampMs": 1772620115000,
+                "accuracy": "200",
+                "battery": 100,
+                "index": 60
+        },
+        {
+                "lat": 26.102186,
+                "lng": 119.27707,
+                "timestamp": "2026-03-05 08:27:23",
+                "timestampMs": 1772670443000,
+                "accuracy": "66",
+                "battery": 100,
+                "index": 61
+        },
+        {
+                "lat": 26.103544,
+                "lng": 119.27803,
+                "timestamp": "2026-03-05 08:28:29",
+                "timestampMs": 1772670509000,
+                "accuracy": "124",
+                "battery": 100,
+                "index": 62
+        },
+        {
+                "lat": 26.104155,
+                "lng": 119.28045,
+                "timestamp": "2026-03-05 08:29:12",
+                "timestampMs": 1772670552000,
+                "accuracy": "129",
+                "battery": 100,
+                "index": 63
+        },
+        {
+                "lat": 26.103722,
+                "lng": 119.28551,
+                "timestamp": "2026-03-05 08:30:25",
+                "timestampMs": 1772670625000,
+                "accuracy": "74",
+                "battery": 100,
+                "index": 64
+        },
+        {
+                "lat": 26.102154,
+                "lng": 119.28719,
+                "timestamp": "2026-03-05 08:31:12",
+                "timestampMs": 1772670672000,
+                "accuracy": "113",
+                "battery": 100,
+                "index": 65
+        },
+        {
+                "lat": 26.101315,
+                "lng": 119.28751,
+                "timestamp": "2026-03-05 08:31:57",
+                "timestampMs": 1772670717000,
+                "accuracy": "162",
+                "battery": 100,
+                "index": 66
+        },
+        {
+                "lat": 26.101255,
+                "lng": 119.28861,
+                "timestamp": "2026-03-05 08:33:35",
+                "timestampMs": 1772670815000,
+                "accuracy": "187",
+                "battery": 100,
+                "index": 67
+        },
+        {
+                "lat": 26.103065,
+                "lng": 119.30455,
+                "timestamp": "2026-03-05 08:39:03",
+                "timestampMs": 1772671143000,
+                "accuracy": "86",
+                "battery": 100,
+                "index": 68
+        },
+        {
+                "lat": 26.102158,
+                "lng": 119.30469,
+                "timestamp": "2026-03-05 08:40:32",
+                "timestampMs": 1772671232000,
+                "accuracy": "91",
+                "battery": 100,
+                "index": 69
+        }
+];
+        
+        // 地图相关变量
+        let map;
+        let polyline;
+        let marker;
+        let currentIndex = 0;
+        let isPlaying = false;
+        let replayTimer = null;
+        let replaySpeed = 1; // 回放速度倍数
+        
+        // 时间轴相关变量
+        let minTimestamp = 0;
+        let maxTimestamp = 0;
+        let timelineSlider = null;
+        let isTimelineDragging = false;
+        
+        // 初始化时间轴
+        function initTimeline() {
+            if (trackPoints.length === 0) return;
+            
+            // 找到最小和最大时间戳
+            const timestamps = trackPoints.map(p => p.timestampMs).filter(ts => ts > 0);
+            if (timestamps.length === 0) return;
+            
+            minTimestamp = Math.min(...timestamps);
+            maxTimestamp = Math.max(...timestamps);
+            
+            // 设置滑块范围
+            timelineSlider = document.getElementById('timelineSlider');
+            timelineSlider.max = trackPoints.length - 1;
+            timelineSlider.value = 0;
+            
+            // 更新时间轴标记
+            updateTimelineMarks();
+            
+            // 添加滑块事件监听
+            timelineSlider.addEventListener('input', function() {
+                isTimelineDragging = true;
+                const index = parseInt(this.value);
+                jumpToPoint(index);
+            });
+            
+            timelineSlider.addEventListener('mousedown', function() {
+                isTimelineDragging = true;
+            });
+            
+            timelineSlider.addEventListener('mouseup', function() {
+                isTimelineDragging = false;
+            });
+        }
+        
+        // 更新时间轴标记
+        function updateTimelineMarks() {
+            const marksContainer = document.getElementById('timelineMarks');
+            marksContainer.innerHTML = '';
+            
+            if (trackPoints.length === 0) return;
+            
+            // 显示5个标记点（开始、1/4、1/2、3/4、结束）
+            const markPositions = [0, Math.floor(trackPoints.length / 4), Math.floor(trackPoints.length / 2), 
+                                   Math.floor(trackPoints.length * 3 / 4), trackPoints.length - 1];
+            
+            markPositions.forEach((pos, idx) => {
+                if (pos >= trackPoints.length) return;
+                const point = trackPoints[pos];
+                const mark = document.createElement('div');
+                mark.className = 'timeline-mark';
+                
+                if (point.timestamp) {
+                    // 只显示日期
+                    const dateStr = point.timestamp.split(' ')[0];
+                    mark.textContent = dateStr;
+                } else {
+                    mark.textContent = '';
+                }
+                
+                marksContainer.appendChild(mark);
+            });
+        }
+        
+        // 跳转到指定数据点
+        function jumpToPoint(index) {
+            if (index < 0 || index >= trackPoints.length) return;
+            
+            currentIndex = index;
+            const point = trackPoints[index];
+            
+            // 更新标记点位置
+            updateMarker(point);
+            
+            // 更新进度条
+            const progress = ((index + 1) / trackPoints.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // 更新时间轴滑块位置（不触发事件）
+            if (timelineSlider) {
+                timelineSlider.value = index;
+            }
+            
+            // 更新时间轴日期显示
+            if (point.timestamp) {
+                document.getElementById('timelineDate').textContent = point.timestamp;
+            }
+        }
+        
+        // 初始化地图
+        function initMap() {
+            map = new AMap.Map('mapContainer', {
+                zoom: 15,
+                center: [119.28304192753622, 26.096095159420294],
+                mapStyle: 'amap://styles/normal'
+            });
+            
+            // 等待地图加载完成
+            map.on('complete', function() {
+                // 异步加载控件插件
+                AMap.plugin(['AMap.Scale', 'AMap.ToolBar'], function() {
+                    // 添加比例尺控件
+                    var scale = new AMap.Scale();
+                    map.addControl(scale);
+                    
+                    // 添加工具条控件
+                    var toolbar = new AMap.ToolBar();
+                    map.addControl(toolbar);
+                });
+                
+                // 绘制完整轨迹线
+                if (trackPoints.length > 0) {
+                    const path = trackPoints.map(p => [p.lng, p.lat]);
+                    polyline = new AMap.Polyline({
+                        path: path,
+                        isOutline: true,
+                        outlineColor: '#ffeeff',
+                        borderWeight: 3,
+                        strokeColor: '#3366FF',
+                        strokeOpacity: 0.6,
+                        strokeWeight: 3,
+                        lineJoin: 'round',
+                        lineCap: 'round',
+                        zIndex: 50
+                    });
+                    map.add(polyline);
+                    
+                    // 自适应显示
+                    map.setFitView([polyline]);
+                }
+                
+                // 创建标记点
+                marker = new AMap.Marker({
+                    icon: new AMap.Icon({
+                        size: new AMap.Size(32, 32),
+                        image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
+                        imageOffset: new AMap.Pixel(-9, -3),
+                        imageSize: new AMap.Size(18, 18)
+                    }),
+                    offset: new AMap.Pixel(-9, -3),
+                    zIndex: 100
+                });
+                map.add(marker);
+                
+                // 更新状态
+                document.getElementById('status').textContent = '准备就绪';
+                
+                // 初始化时间轴
+                initTimeline();
+            });
+        }
+        
+        // 开始回放
+        function startReplay() {
+            if (isPlaying) return;
+            
+            // 确保地图已初始化
+            if (!map) {
+                console.error('地图未初始化，请等待地图加载完成');
+                document.getElementById('status').textContent = '地图未就绪';
+                return;
+            }
+            
+            if (currentIndex >= trackPoints.length) {
+                resetReplay();
+            }
+            
+            isPlaying = true;
+            document.getElementById('status').textContent = '回放中...';
+            document.getElementById('status').classList.add('active');
+            
+            replayTimer = setInterval(() => {
+                if (currentIndex >= trackPoints.length) {
+                    stopReplay();
+                    return;
+                }
+                
+                const point = trackPoints[currentIndex];
+                updateMarker(point);
+                
+                // 更新时间轴滑块位置（不触发input事件）
+                if (timelineSlider && !isTimelineDragging) {
+                    timelineSlider.value = currentIndex;
+                }
+                
+                // 更新时间轴日期显示
+                if (point.timestamp) {
+                    document.getElementById('timelineDate').textContent = point.timestamp;
+                }
+                
+                currentIndex++;
+                
+                // 更新进度
+                const progress = (currentIndex / trackPoints.length) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+            }, 1000 / replaySpeed); // 根据速度调整间隔
+        }
+        
+        // 暂停回放
+        function pauseReplay() {
+            if (!isPlaying) return;
+            
+            isPlaying = false;
+            clearInterval(replayTimer);
+            document.getElementById('status').textContent = '已暂停';
+            document.getElementById('status').classList.remove('active');
+        }
+        
+        // 停止回放
+        function stopReplay() {
+            isPlaying = false;
+            clearInterval(replayTimer);
+            document.getElementById('status').textContent = '已停止';
+            document.getElementById('status').classList.remove('active');
+        }
+        
+        // 重置回放
+        function resetReplay() {
+            stopReplay();
+            currentIndex = 0;
+            document.getElementById('progressFill').style.width = '0%';
+            updateInfoPanel(null);
+            document.getElementById('status').textContent = '准备就绪';
+            
+            // 重置时间轴
+            if (timelineSlider) {
+                timelineSlider.value = 0;
+            }
+            document.getElementById('timelineDate').textContent = '-';
+        }
+        
+        // 改变回放速度
+        function changeSpeed() {
+            replaySpeed = parseFloat(document.getElementById('speedSelect').value);
+            if (isPlaying) {
+                pauseReplay();
+                startReplay();
+            }
+        }
+        
+        // 更新标记点位置
+        function updateMarker(point) {
+            if (!map) {
+                console.error('地图未初始化');
+                return;
+            }
+            if (!marker) {
+                // 如果标记点不存在，先创建它
+                marker = new AMap.Marker({
+                    icon: new AMap.Icon({
+                        size: new AMap.Size(32, 32),
+                        image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
+                        imageOffset: new AMap.Pixel(-9, -3),
+                        imageSize: new AMap.Size(18, 18)
+                    }),
+                    offset: new AMap.Pixel(-9, -3),
+                    zIndex: 100
+                });
+                map.add(marker);
+            }
+            marker.setPosition([point.lng, point.lat]);
+            // 不移动地图中心，只更新标记点位置
+            updateInfoPanel(point);
+        }
+        
+        // 更新信息面板
+        function updateInfoPanel(point) {
+            if (!point) {
+                document.getElementById('currentIndex').textContent = '-';
+                document.getElementById('currentTime').textContent = '-';
+                document.getElementById('currentLat').textContent = '-';
+                document.getElementById('currentLng').textContent = '-';
+                document.getElementById('currentAccuracy').textContent = '-';
+                document.getElementById('currentBattery').textContent = '-';
+                return;
+            }
+            
+            document.getElementById('currentIndex').textContent = point.index + ' / ' + trackPoints.length;
+            document.getElementById('currentTime').textContent = point.timestamp;
+            document.getElementById('currentLat').textContent = point.lat.toFixed(6);
+            document.getElementById('currentLng').textContent = point.lng.toFixed(6);
+            document.getElementById('currentAccuracy').textContent = point.accuracy + 'm';
+            document.getElementById('currentBattery').textContent = point.battery + '%';
+        }
+        
+        // 页面加载完成后初始化地图
+        window.onload = function() {
+            initMap();
+        };
+    </script>
+</body>
+</html>
