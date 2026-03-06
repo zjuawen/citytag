@@ -142,6 +142,8 @@
             min-width: 200px;
             z-index: 1000;
             font-size: 13px;
+            cursor: default;
+            user-select: none;
         }
         
         .info-panel h3 {
@@ -150,6 +152,15 @@
             font-size: 14px;
             border-bottom: 2px solid #667eea;
             padding-bottom: 5px;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .info-panel h3:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 4px;
+            padding: 5px;
+            margin: -5px -5px 5px -5px;
         }
         
         .info-item {
@@ -283,7 +294,7 @@
     <div class="header">
         <h1>📍 轨迹回放</h1>
         <div class="header-info">
-            设备: dd (SN: 201607813254) | 总点数: 69
+            设备: dd (SN: 201607813254) | 总点数: 78
         </div>
     </div>
     
@@ -976,6 +987,87 @@
                 "accuracy": "91",
                 "battery": 100,
                 "index": 69
+        },
+        {
+                "lat": 26.094408438172806,
+                "lng": 119.31032046322122,
+                "timestamp": "2026-03-05 13:14:23",
+                "timestampMs": 1772687663000,
+                "accuracy": "89",
+                "battery": 100,
+                "index": 70
+        },
+        {
+                "lat": 26.102332830213776,
+                "lng": 119.30588950186623,
+                "timestamp": "2026-03-05 17:45:24",
+                "timestampMs": 1772703924000,
+                "accuracy": "67",
+                "battery": 100,
+                "index": 71
+        },
+        {
+                "lat": 26.09746658733939,
+                "lng": 119.30623971963458,
+                "timestamp": "2026-03-05 17:47:55",
+                "timestampMs": 1772704075000,
+                "accuracy": "70",
+                "battery": 100,
+                "index": 72
+        },
+        {
+                "lat": 26.100928261756412,
+                "lng": 119.28346858407276,
+                "timestamp": "2026-03-05 17:53:09",
+                "timestampMs": 1772704389000,
+                "accuracy": "74",
+                "battery": 100,
+                "index": 73
+        },
+        {
+                "lat": 26.1000458167602,
+                "lng": 119.2824725028192,
+                "timestamp": "2026-03-05 17:54:21",
+                "timestampMs": 1772704461000,
+                "accuracy": "84",
+                "battery": 100,
+                "index": 74
+        },
+        {
+                "lat": 26.097663802423373,
+                "lng": 119.27870379755694,
+                "timestamp": "2026-03-05 17:55:44",
+                "timestampMs": 1772704544000,
+                "accuracy": "56",
+                "battery": 100,
+                "index": 75
+        },
+        {
+                "lat": 26.09080720318659,
+                "lng": 119.26110388633437,
+                "timestamp": "2026-03-06 08:17:25",
+                "timestampMs": 1772756245000,
+                "accuracy": "95",
+                "battery": 100,
+                "index": 76
+        },
+        {
+                "lat": 26.097956326477707,
+                "lng": 119.29284951632333,
+                "timestamp": "2026-03-06 08:29:12",
+                "timestampMs": 1772756952000,
+                "accuracy": "104",
+                "battery": 100,
+                "index": 77
+        },
+        {
+                "lat": 26.102080261553226,
+                "lng": 119.30543873582315,
+                "timestamp": "2026-03-06 08:34:10",
+                "timestampMs": 1772757250000,
+                "accuracy": "91",
+                "battery": 100,
+                "index": 78
         }
 ];
         
@@ -1087,7 +1179,7 @@
         function initMap() {
             map = new AMap.Map('mapContainer', {
                 zoom: 15,
-                center: [119.287829418786, 26.092964880598895],
+                center: [119.28829123851135, 26.093567516528303],
                 mapStyle: 'amap://styles/normal'
             });
             
@@ -1279,9 +1371,107 @@
             document.getElementById('currentBattery').textContent = point.battery + '%';
         }
         
+        // 初始化信息面板拖拽功能
+        function initInfoPanelDrag() {
+            const infoPanel = document.querySelector('.info-panel');
+            const header = infoPanel.querySelector('h3');
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            
+            // 从localStorage恢复位置
+            const savedPosition = localStorage.getItem('infoPanelPosition');
+            if (savedPosition) {
+                const pos = JSON.parse(savedPosition);
+                infoPanel.style.left = pos.left;
+                infoPanel.style.right = 'auto';
+                infoPanel.style.top = pos.top;
+                infoPanel.style.bottom = 'auto';
+                xOffset = pos.xOffset || 0;
+                yOffset = pos.yOffset || 0;
+            }
+            
+            header.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+            
+            function dragStart(e) {
+                if (e.button !== 0) return; // 只响应左键
+                
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+                
+                if (e.target === header || header.contains(e.target)) {
+                    isDragging = true;
+                    header.style.cursor = 'grabbing';
+                }
+            }
+            
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    // 获取面板尺寸和容器尺寸
+                    const panelRect = infoPanel.getBoundingClientRect();
+                    const container = document.getElementById('mapContainer');
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    // 计算边界限制
+                    const minX = 0;
+                    const minY = 0;
+                    const maxX = containerRect.width - panelRect.width;
+                    const maxY = containerRect.height - panelRect.height;
+                    
+                    // 限制在容器内
+                    let newX = Math.max(minX, Math.min(maxX, currentX));
+                    let newY = Math.max(minY, Math.min(maxY, currentY));
+                    
+                    // 使用left和top定位
+                    infoPanel.style.left = newX + 'px';
+                    infoPanel.style.right = 'auto';
+                    infoPanel.style.top = newY + 'px';
+                    infoPanel.style.bottom = 'auto';
+                    
+                    xOffset = newX;
+                    yOffset = newY;
+                }
+            }
+            
+            function dragEnd(e) {
+                if (isDragging) {
+                    initialX = currentX;
+                    initialY = currentY;
+                    isDragging = false;
+                    header.style.cursor = 'move';
+                    
+                    // 保存位置到localStorage
+                    const rect = infoPanel.getBoundingClientRect();
+                    const containerRect = document.getElementById('mapContainer').getBoundingClientRect();
+                    const savedPos = {
+                        left: infoPanel.style.left,
+                        top: infoPanel.style.top,
+                        xOffset: xOffset,
+                        yOffset: yOffset
+                    };
+                    localStorage.setItem('infoPanelPosition', JSON.stringify(savedPos));
+                }
+            }
+        }
+        
         // 页面加载完成后初始化地图
         window.onload = function() {
             initMap();
+            initInfoPanelDrag();
         };
     </script>
 </body>

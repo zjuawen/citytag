@@ -300,6 +300,8 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             min-width: 200px;
             z-index: 1000;
             font-size: 13px;
+            cursor: default;
+            user-select: none;
         }}
         
         .info-panel h3 {{
@@ -308,6 +310,15 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             font-size: 14px;
             border-bottom: 2px solid #667eea;
             padding-bottom: 5px;
+            cursor: move;
+            user-select: none;
+        }}
+        
+        .info-panel h3:hover {{
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 4px;
+            padding: 5px;
+            margin: -5px -5px 5px -5px;
         }}
         
         .info-item {{
@@ -815,9 +826,107 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             document.getElementById('currentBattery').textContent = point.battery + '%';
         }}
         
+        // 初始化信息面板拖拽功能
+        function initInfoPanelDrag() {{
+            const infoPanel = document.querySelector('.info-panel');
+            const header = infoPanel.querySelector('h3');
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            
+            // 从localStorage恢复位置
+            const savedPosition = localStorage.getItem('infoPanelPosition');
+            if (savedPosition) {{
+                const pos = JSON.parse(savedPosition);
+                infoPanel.style.left = pos.left;
+                infoPanel.style.right = 'auto';
+                infoPanel.style.top = pos.top;
+                infoPanel.style.bottom = 'auto';
+                xOffset = pos.xOffset || 0;
+                yOffset = pos.yOffset || 0;
+            }}
+            
+            header.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+            
+            function dragStart(e) {{
+                if (e.button !== 0) return; // 只响应左键
+                
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+                
+                if (e.target === header || header.contains(e.target)) {{
+                    isDragging = true;
+                    header.style.cursor = 'grabbing';
+                }}
+            }}
+            
+            function drag(e) {{
+                if (isDragging) {{
+                    e.preventDefault();
+                    
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    // 获取面板尺寸和容器尺寸
+                    const panelRect = infoPanel.getBoundingClientRect();
+                    const container = document.getElementById('mapContainer');
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    // 计算边界限制
+                    const minX = 0;
+                    const minY = 0;
+                    const maxX = containerRect.width - panelRect.width;
+                    const maxY = containerRect.height - panelRect.height;
+                    
+                    // 限制在容器内
+                    let newX = Math.max(minX, Math.min(maxX, currentX));
+                    let newY = Math.max(minY, Math.min(maxY, currentY));
+                    
+                    // 使用left和top定位
+                    infoPanel.style.left = newX + 'px';
+                    infoPanel.style.right = 'auto';
+                    infoPanel.style.top = newY + 'px';
+                    infoPanel.style.bottom = 'auto';
+                    
+                    xOffset = newX;
+                    yOffset = newY;
+                }}
+            }}
+            
+            function dragEnd(e) {{
+                if (isDragging) {{
+                    initialX = currentX;
+                    initialY = currentY;
+                    isDragging = false;
+                    header.style.cursor = 'move';
+                    
+                    // 保存位置到localStorage
+                    const rect = infoPanel.getBoundingClientRect();
+                    const containerRect = document.getElementById('mapContainer').getBoundingClientRect();
+                    const savedPos = {{
+                        left: infoPanel.style.left,
+                        top: infoPanel.style.top,
+                        xOffset: xOffset,
+                        yOffset: yOffset
+                    }};
+                    localStorage.setItem('infoPanelPosition', JSON.stringify(savedPos));
+                }}
+            }}
+        }}
+        
         // 页面加载完成后初始化地图
         window.onload = function() {{
             initMap();
+            initInfoPanelDrag();
         }};
     </script>
 </body>
