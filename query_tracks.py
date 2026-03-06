@@ -427,6 +427,7 @@ def clear_token_file() -> bool:
 DEFAULT_USERNAME = "18659179970"
 DEFAULT_PASSWORD = "awen5221"
 DEFAULT_DEVICE_SN = "201607813254"  # 默认设备序列号
+DEFAULT_QUERY_DAYS = 60  # 快捷查询默认查询天数
 
 
 def login_and_get_token(username: str = None, password: str = None, save_token: bool = True) -> tuple:
@@ -587,7 +588,7 @@ def get_timestamp_ms(year: int, month: int, day: int, hour: int = 0, minute: int
 def quick_query(sn: str = None, output_file: str = "history_tracks.json", 
                      max_pages: int = 10) -> dict:
     """
-    快捷查询：使用默认值查询3天内的历史轨迹点，去重后合并到JSON文件
+    快捷查询：使用默认值查询指定天数内的历史轨迹点，去重后合并到JSON文件
     
     Args:
         sn: 设备序列号（如果不提供，使用默认值）
@@ -601,7 +602,7 @@ def quick_query(sn: str = None, output_file: str = "history_tracks.json",
         sn = DEFAULT_DEVICE_SN
     
     print("=" * 60)
-    print("快捷查询：3天内的历史轨迹点")
+    print(f"快捷查询：{DEFAULT_QUERY_DAYS}天内的历史轨迹点")
     print("=" * 60)
     print(f"设备序列号: {sn}")
     print(f"输出文件: {output_file}")
@@ -612,16 +613,16 @@ def quick_query(sn: str = None, output_file: str = "history_tracks.json",
         print("❌ 无法获取 token，退出")
         return None
     
-    # 计算3天前的时间（使用字符串格式，与解密出的参数格式一致）
-    end_time = datetime.now()
-    start_time = end_time - timedelta(days=60)
+    # 计算默认天数前的时间（使用字符串格式，与解密出的参数格式一致）
+    end_time = datetime.now() #  - timedelta(days=DEFAULT_QUERY_DAYS)
+    start_time = end_time - timedelta(days=DEFAULT_QUERY_DAYS)
     
     # 格式化为字符串格式：YYYY-MM-DD HH:MM:SS
     start_time_str = start_time.strftime('%Y-%m-%d %H:%M:%S')
     end_time_str = end_time.strftime('%Y-%m-%d %H:%M:%S')
     
     print(f"时间范围: {start_time_str} 到 {end_time_str}")
-    print(f"时间跨度: 3 天")
+    print(f"时间跨度: {DEFAULT_QUERY_DAYS} 天")
     
     # 存储所有去重后的轨迹点
     all_track_points = []
@@ -790,18 +791,18 @@ def quick_query(sn: str = None, output_file: str = "history_tracks.json",
         if page_no == 1:
             print("\n可能的原因:")
             print("1. API返回的historyList为空 - 该设备可能没有历史轨迹数据")
-            print("2. 所有轨迹点的时间都在3天之前 - 可以尝试查询更大的时间范围")
+            print(f"2. 所有轨迹点的时间都在{DEFAULT_QUERY_DAYS}天之前 - 可以尝试查询更大的时间范围")
             print("3. Token已过期或设备序列号不正确")
             print("\n建议:")
-            print("- 尝试查询更大的时间范围（如7天、30天）")
+            print("- 尝试查询更大的时间范围（如90天、180天）")
             print("- 检查设备是否有历史轨迹数据")
             print("- 验证token和设备序列号是否正确")
         else:
             print("\n可能的原因:")
             print("1. 所有轨迹点的时间都在查询时间范围之外")
-            print("2. 设备在最近3天内没有产生轨迹数据")
+            print(f"2. 设备在最近{DEFAULT_QUERY_DAYS}天内没有产生轨迹数据")
             print("\n建议:")
-            print("- 尝试查询更大的时间范围（如7天、30天）")
+            print("- 尝试查询更大的时间范围（如90天、180天）")
             print("- 检查设备最后更新时间")
         
         return None
@@ -872,7 +873,7 @@ def quick_query(sn: str = None, output_file: str = "history_tracks.json",
             'end_time': end_time_ms,
             'start_time_str': start_time_str,
             'end_time_str': end_time_str,
-            'time_range_days': 3,
+            'time_range_days': DEFAULT_QUERY_DAYS,
             'query_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'total_points_before_dedup': len(all_track_points),
             'total_points_after_dedup': len(deduplicated_points),
@@ -1695,9 +1696,9 @@ def main():
 
 
 def quick_query_main():
-    """快捷查询主函数：查询3天内的数据并保存到JSON文件"""
+    """快捷查询主函数：查询指定天数内的数据并保存到JSON文件"""
     print("=" * 60)
-    print("快捷查询：3天内的历史轨迹点")
+    print(f"快捷查询：{DEFAULT_QUERY_DAYS}天内的历史轨迹点")
     print("=" * 60)
     
     # 使用默认值
@@ -1706,7 +1707,7 @@ def quick_query_main():
     
     print(f"使用默认设备序列号: {sn}")
     print(f"输出文件: {output_file}")
-    print(f"时间范围: 最近3天")
+    print(f"时间范围: 最近{DEFAULT_QUERY_DAYS}天")
     print(f"所有参数使用默认值，自动查询并保存")
     
     # 执行快捷查询
@@ -1735,7 +1736,7 @@ if __name__ == "__main__":
         print("=" * 60)
         print("CityTag API 请求体生成工具")
         print("=" * 60)
-        quick_choice = input("是否执行快捷查询（3天内数据，使用默认值）? (y/n，默认n): ").strip().lower()
+        quick_choice = input(f"是否执行快捷查询（{DEFAULT_QUERY_DAYS}天内数据，使用默认值）? (y/n，默认n): ").strip().lower()
         
         if quick_choice == 'y':
             quick_query_main()
