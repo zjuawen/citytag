@@ -12,6 +12,13 @@ from datetime import datetime
 from pathlib import Path
 import math
 
+# 尝试导入查询模块，如果失败则提示
+try:
+    import query_tracks
+    HAS_QUERY_MODULE = True
+except ImportError:
+    HAS_QUERY_MODULE = False
+
 
 def parse_timestamp_to_datetime(timestamp_str):
     """
@@ -953,10 +960,73 @@ def main():
     if len(sys.argv) > 1:
         json_file = sys.argv[1]
     
+    # 如果文件不存在，尝试自动生成
     if not os.path.exists(json_file):
-        print(f"❌ 错误: 找不到文件 {json_file}")
-        print(f"   请确保文件存在，或提供正确的文件路径")
-        return
+        print(f"⚠️  文件不存在: {json_file}")
+        
+        if HAS_QUERY_MODULE:
+            print(f"\n尝试自动生成文件...")
+            choice = input(f"是否调用快捷查询功能生成 {json_file}? (y/n，默认y): ").strip().lower()
+            
+            if choice != 'n':
+                print("\n" + "=" * 60)
+                print("开始快捷查询...")
+                print("=" * 60)
+                
+                try:
+                    # 调用快捷查询功能
+                    result = query_tracks.quick_query(
+                        sn=None,  # 使用默认设备序列号
+                        output_file=json_file,
+                        max_pages=10
+                    )
+                    
+                    if result:
+                        print(f"\n✅ 文件已生成: {os.path.abspath(json_file)}")
+                    else:
+                        print(f"\n❌ 文件生成失败")
+                        return
+                except Exception as e:
+                    print(f"\n❌ 生成文件时出错: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    return
+            else:
+                print(f"❌ 用户取消，退出")
+                return
+        else:
+            print(f"❌ 错误: 找不到文件 {json_file}")
+            print(f"   请确保文件存在，或提供正确的文件路径")
+            print(f"\n提示: 如果 query_tracks.py 在同一目录下，可以自动生成文件")
+            return
+    else:
+        # 文件存在，询问是否要更新
+        if HAS_QUERY_MODULE:
+            print(f"✅ 文件已存在: {json_file}")
+            update_choice = input(f"是否重新查询更新文件? (y/n，默认n): ").strip().lower()
+            
+            if update_choice == 'y':
+                print("\n" + "=" * 60)
+                print("开始快捷查询更新文件...")
+                print("=" * 60)
+                
+                try:
+                    # 调用快捷查询功能更新文件
+                    result = query_tracks.quick_query(
+                        sn=None,  # 使用默认设备序列号
+                        output_file=json_file,
+                        max_pages=10
+                    )
+                    
+                    if result:
+                        print(f"\n✅ 文件已更新: {os.path.abspath(json_file)}")
+                    else:
+                        print(f"\n⚠️  文件更新失败，将使用现有文件")
+                except Exception as e:
+                    print(f"\n⚠️  更新文件时出错: {e}")
+                    print(f"   将使用现有文件")
+                    import traceback
+                    traceback.print_exc()
     
     print(f"📂 读取文件: {json_file}")
     
