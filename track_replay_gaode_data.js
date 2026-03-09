@@ -1,4 +1,6 @@
-{
+// 轨迹数据文件（自动生成）
+// 从 history_tracks.json 生成
+const trackData = {
   "device_info": {
     "sn": "201607813254",
     "name": "dd",
@@ -1570,4 +1572,4 @@
       "updatetime": "2026-03-09 17:32:12"
     }
   ]
-}
+};

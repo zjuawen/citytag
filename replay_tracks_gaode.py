@@ -100,18 +100,19 @@ def load_track_points(json_file):
     return device_info, query_info, track_points
 
 
-def generate_html(device_info, query_info, track_points, output_file='track_replay_gaode.html'):
+def generate_html(device_info, query_info, track_points, output_file='track_replay_gaode.html', json_file_path='history_tracks.json'):
     """
     生成高德地图轨迹回放HTML文件
     
     Args:
-        device_info: 设备信息
-        query_info: 查询信息
-        track_points: 轨迹点列表
+        device_info: 设备信息（用于初始显示）
+        query_info: 查询信息（用于初始显示）
+        track_points: 轨迹点列表（用于初始显示和计算中心点）
         output_file: 输出HTML文件名
+        json_file_path: JSON文件路径（HTML将动态加载此文件）
     """
     
-    # 准备轨迹点数据（转换为JavaScript数组格式）
+    # 准备轨迹点数据（用于计算中心点和初始显示）
     points_js = []
     timestamps_ms = []  # 存储时间戳（毫秒）
     
@@ -161,6 +162,31 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
     device_name = device_info.get('name', '未知设备')
     device_sn = device_info.get('sn', 'N/A')
     total_points = len(track_points)
+    
+    # 生成JavaScript数据文件名（与HTML文件同目录）
+    output_dir = os.path.dirname(os.path.abspath(output_file)) if os.path.dirname(output_file) else os.getcwd()
+    js_data_file = os.path.splitext(output_file)[0] + '_data.js'
+    js_data_file_name = os.path.basename(js_data_file)
+    js_file_path = os.path.join(output_dir, js_data_file_name)
+    
+    # 读取JSON文件内容并转换为JavaScript变量
+    try:
+        with open(json_file_path, 'r', encoding='utf-8') as f:
+            json_data = json.load(f)
+        
+        # 生成JavaScript文件内容
+        js_content = f"// 轨迹数据文件（自动生成）\n"
+        js_content += f"// 从 {os.path.basename(json_file_path)} 生成\n"
+        js_content += f"const trackData = {json.dumps(json_data, ensure_ascii=False, indent=2)};\n"
+        
+        # 写入JavaScript文件
+        with open(js_file_path, 'w', encoding='utf-8') as f:
+            f.write(js_content)
+        
+        print(f"✅ 已生成数据文件: {os.path.abspath(js_file_path)}")
+    except Exception as e:
+        print(f"⚠️  生成数据文件失败: {e}")
+        js_data_file_name = None
     
     # 生成HTML内容
     html_content = f'''<!DOCTYPE html>
@@ -454,6 +480,7 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
     <!-- 如果使用测试Key，地图上会显示水印 -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=be36223b9dab65bb6b1f4bd5f9bb9442"></script>
     <script src="https://webapi.amap.com/ui/1.1/main.js"></script>
+    {'<script src="' + js_data_file_name + '"></script>' if js_data_file_name else ''}
 </head>
 <body>
     <div class="header">
@@ -530,8 +557,8 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
     </div>
 
     <script>
-        // 轨迹点数据
-        const trackPoints = {json.dumps(points_js, ensure_ascii=False, indent=8)};
+        // 轨迹点数据（将从JavaScript数据文件加载）
+        let trackPoints = [];
         
         // 地图相关变量
         let map;
@@ -547,6 +574,131 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
         let maxTimestamp = 0;
         let timelineSlider = null;
         let isTimelineDragging = false;
+        
+        // 坐标转换函数（WGS84转GCJ02）
+        function wgs84ToGcj02(lng, lat) {{
+            const a = 6378245.0;
+            const ee = 0.00669342162296594323;
+            
+            function transformLat(x, y) {{
+                let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+                ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+                ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+                ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+                return ret;
+            }}
+            
+            function transformLng(x, y) {{
+                let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+                ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+                ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+                ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+                return ret;
+            }}
+            
+            let dLat = transformLat(lng - 105.0, lat - 35.0);
+            let dLng = transformLng(lng - 105.0, lat - 35.0);
+            let radLat = lat / 180.0 * Math.PI;
+            let magic = Math.sin(radLat);
+            magic = 1 - ee * magic * magic;
+            let sqrtMagic = Math.sqrt(magic);
+            dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI);
+            dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * Math.PI);
+            return [lng + dLng, lat + dLat];
+        }}
+        
+        // 解析时间戳字符串为毫秒时间戳
+        function parseTimestampToMs(timestampStr) {{
+            if (!timestampStr) return 0;
+            try {{
+                // 格式：YYYY-MM-DD HH:MM:SS
+                const parts = timestampStr.split(' ');
+                if (parts.length === 2) {{
+                    const datePart = parts[0].split('-');
+                    const timePart = parts[1].split(':');
+                    const dt = new Date(
+                        parseInt(datePart[0]),
+                        parseInt(datePart[1]) - 1,
+                        parseInt(datePart[2]),
+                        parseInt(timePart[0]),
+                        parseInt(timePart[1]),
+                        parseInt(timePart[2])
+                    );
+                    return dt.getTime();
+                }}
+            }} catch (e) {{
+                console.error('解析时间戳失败:', timestampStr, e);
+            }}
+            return 0;
+        }}
+        
+        // 加载轨迹数据（从JavaScript数据文件）
+        function loadTrackData() {{
+            try {{
+                document.getElementById('status').textContent = '正在加载数据...';
+                
+                // 检查全局变量 trackData 是否存在
+                if (typeof trackData === 'undefined') {{
+                    throw new Error('数据文件未加载，请确保 track_data.js 文件存在');
+                }}
+                
+                const data = trackData;
+                
+                // 处理轨迹点数据
+                const rawPoints = data.track_points || [];
+                trackPoints = [];
+                
+                for (let i = 0; i < rawPoints.length; i++) {{
+                    const point = rawPoints[i];
+                    let lat = point.latitude || 0;
+                    let lng = point.longitude || 0;
+                    const timestamp = point.timestamp || '';
+                    const accuracy = point.accuracy || 'N/A';
+                    const battery = point.batteryLevel || 'N/A';
+                    
+                    // 坐标转换
+                    if (lat !== 0 && lng !== 0) {{
+                        [lng, lat] = wgs84ToGcj02(lng, lat);
+                    }}
+                    
+                    // 时间戳转换
+                    const timestampMs = parseTimestampToMs(timestamp);
+                    
+                    trackPoints.push({{
+                        lat: lat,
+                        lng: lng,
+                        timestamp: timestamp,
+                        timestampMs: timestampMs,
+                        accuracy: accuracy,
+                        battery: battery,
+                        index: i + 1
+                    }});
+                }}
+                
+                // 更新设备信息显示
+                const deviceInfo = data.device_info || {{}};
+                const deviceName = deviceInfo.name || '未知设备';
+                const deviceSn = deviceInfo.sn || 'N/A';
+                document.querySelector('.header h1').textContent = '📍 轨迹回放';
+                document.querySelector('.header-info').textContent = 
+                    `设备: ${{deviceName}} (SN: ${{deviceSn}}) | 总点数: ${{trackPoints.length}}`;
+                
+                document.getElementById('status').textContent = '数据加载完成';
+                
+                // 如果地图已初始化，重新绘制轨迹
+                if (map) {{
+                    drawTrack();
+                    initTimeline();
+                }}
+                
+                return true;
+            }} catch (error) {{
+                console.error('加载数据失败:', error);
+                document.getElementById('status').textContent = '加载数据失败: ' + error.message;
+                document.getElementById('status').classList.add('active');
+                return false;
+            }}
+        }}
         
         // 初始化时间轴
         function initTimeline() {{
@@ -612,6 +764,45 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             }});
         }}
         
+        // 绘制轨迹线
+        function drawTrack() {{
+            if (!map || trackPoints.length === 0) return;
+            
+            // 移除旧的轨迹线
+            if (polyline) {{
+                map.remove(polyline);
+                polyline = null;
+            }}
+            
+            // 绘制新的轨迹线
+            const path = trackPoints.map(p => [p.lng, p.lat]);
+            polyline = new AMap.Polyline({{
+                path: path,
+                isOutline: true,
+                outlineColor: '#ffeeff',
+                borderWeight: 3,
+                strokeColor: '#3366FF',
+                strokeOpacity: 0.6,
+                strokeWeight: 3,
+                lineJoin: 'round',
+                lineCap: 'round',
+                zIndex: 50
+            }});
+            map.add(polyline);
+            
+            // 自适应显示
+            map.setFitView([polyline]);
+            
+            // 更新地图中心点
+            if (trackPoints.length > 0) {{
+                const lats = trackPoints.map(p => p.lat);
+                const lngs = trackPoints.map(p => p.lng);
+                const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+                const centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+                map.setCenter([centerLng, centerLat]);
+            }}
+        }}
+        
         // 跳转到指定数据点
         function jumpToPoint(index) {{
             if (index < 0 || index >= trackPoints.length) return;
@@ -658,27 +849,6 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                     map.addControl(toolbar);
                 }});
                 
-                // 绘制完整轨迹线
-                if (trackPoints.length > 0) {{
-                    const path = trackPoints.map(p => [p.lng, p.lat]);
-                    polyline = new AMap.Polyline({{
-                        path: path,
-                        isOutline: true,
-                        outlineColor: '#ffeeff',
-                        borderWeight: 3,
-                        strokeColor: '#3366FF',
-                        strokeOpacity: 0.6,
-                        strokeWeight: 3,
-                        lineJoin: 'round',
-                        lineCap: 'round',
-                        zIndex: 50
-                    }});
-                    map.add(polyline);
-                    
-                    // 自适应显示
-                    map.setFitView([polyline]);
-                }}
-                
                 // 创建标记点
                 marker = new AMap.Marker({{
                     icon: new AMap.Icon({{
@@ -692,11 +862,18 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                 }});
                 map.add(marker);
                 
-                // 更新状态
-                document.getElementById('status').textContent = '准备就绪';
-                
-                // 初始化时间轴
-                initTimeline();
+                // 加载轨迹数据（数据文件通过script标签已加载，这里直接处理）
+                const loaded = loadTrackData();
+                if (loaded && trackPoints.length > 0) {{
+                    // 数据加载成功后，绘制轨迹
+                    drawTrack();
+                    // 初始化时间轴
+                    initTimeline();
+                    document.getElementById('status').textContent = '准备就绪';
+                }} else {{
+                    document.getElementById('status').textContent = '数据加载失败，请检查数据文件';
+                    document.getElementById('status').classList.add('active');
+                }}
             }});
         }}
         
@@ -930,10 +1107,13 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             }}
         }}
         
-        // 页面加载完成后初始化地图
+        // 页面加载完成后初始化
         window.onload = function() {{
-            initMap();
+            // 初始化信息面板拖拽功能
             initInfoPanelDrag();
+            
+            // 初始化地图（地图加载完成后会自动加载数据）
+            initMap();
         }};
     </script>
 </body>
@@ -1041,8 +1221,10 @@ def main():
             print("⚠️  警告: 没有轨迹点数据")
             return
         
-        # 生成HTML文件
-        output_file = generate_html(device_info, query_info, track_points)
+        # 生成HTML文件（传递JSON文件路径，HTML将动态加载）
+        output_file = generate_html(device_info, query_info, track_points, 
+                                   output_file='track_replay_gaode.html',
+                                   json_file_path=json_file)
         abs_path = os.path.abspath(output_file)
         
         print(f"\n✅ HTML文件已生成: {abs_path}")

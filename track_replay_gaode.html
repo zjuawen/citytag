@@ -289,12 +289,13 @@
     <!-- 如果使用测试Key，地图上会显示水印 -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=be36223b9dab65bb6b1f4bd5f9bb9442"></script>
     <script src="https://webapi.amap.com/ui/1.1/main.js"></script>
+    <script src="track_replay_gaode_data.js"></script>
 </head>
 <body>
     <div class="header">
         <h1>📍 轨迹回放</h1>
         <div class="header-info">
-            设备: dd (SN: 201607813254) | 总点数: 101
+            设备: dd (SN: 201607813254) | 总点数: 103
         </div>
     </div>
     
@@ -365,918 +366,8 @@
     </div>
 
     <script>
-        // 轨迹点数据
-        const trackPoints = [
-        {
-                "lat": 26.08801873083987,
-                "lng": 119.25972345950223,
-                "timestamp": "2026-02-24 18:24:21",
-                "timestampMs": 1771928661000,
-                "accuracy": "113",
-                "battery": 100,
-                "index": 1
-        },
-        {
-                "lat": 26.06520951813156,
-                "lng": 119.28110355728427,
-                "timestamp": "2026-02-24 19:27:22",
-                "timestampMs": 1771932442000,
-                "accuracy": "124",
-                "battery": 100,
-                "index": 2
-        },
-        {
-                "lat": 26.062174251785585,
-                "lng": 119.2890720105145,
-                "timestamp": "2026-02-24 19:31:43",
-                "timestampMs": 1771932703000,
-                "accuracy": "138",
-                "battery": 100,
-                "index": 3
-        },
-        {
-                "lat": 26.065425297429762,
-                "lng": 119.2916454944927,
-                "timestamp": "2026-02-24 19:33:56",
-                "timestampMs": 1771932836000,
-                "accuracy": "111",
-                "battery": 100,
-                "index": 4
-        },
-        {
-                "lat": 26.09065029401573,
-                "lng": 119.26105386533723,
-                "timestamp": "2026-02-25 08:58:30",
-                "timestampMs": 1771981110000,
-                "accuracy": "119",
-                "battery": 100,
-                "index": 5
-        },
-        {
-                "lat": 26.076734445639833,
-                "lng": 119.28369200545964,
-                "timestamp": "2026-02-25 09:34:16",
-                "timestampMs": 1771983256000,
-                "accuracy": "140",
-                "battery": 100,
-                "index": 6
-        },
-        {
-                "lat": 26.06821488813874,
-                "lng": 119.29042914631157,
-                "timestamp": "2026-02-25 10:02:31",
-                "timestampMs": 1771984951000,
-                "accuracy": "105",
-                "battery": 100,
-                "index": 7
-        },
-        {
-                "lat": 26.071886306183604,
-                "lng": 119.263082919785,
-                "timestamp": "2026-02-25 10:22:04",
-                "timestampMs": 1771986124000,
-                "accuracy": "94",
-                "battery": 100,
-                "index": 8
-        },
-        {
-                "lat": 26.08307548276518,
-                "lng": 119.25503792882775,
-                "timestamp": "2026-02-25 10:27:43",
-                "timestampMs": 1771986463000,
-                "accuracy": "93",
-                "battery": 100,
-                "index": 9
-        },
-        {
-                "lat": 26.08764286120948,
-                "lng": 119.25909335753195,
-                "timestamp": "2026-02-25 16:02:58",
-                "timestampMs": 1772006578000,
-                "accuracy": "120",
-                "battery": 100,
-                "index": 10
-        },
-        {
-                "lat": 26.07710147636904,
-                "lng": 119.25592244385246,
-                "timestamp": "2026-02-27 17:08:10",
-                "timestampMs": 1772183290000,
-                "accuracy": "167",
-                "battery": 100,
-                "index": 11
-        },
-        {
-                "lat": 26.08802172886223,
-                "lng": 119.25972345972643,
-                "timestamp": "2026-02-27 18:41:20",
-                "timestampMs": 1772188880000,
-                "accuracy": "107",
-                "battery": 100,
-                "index": 12
-        },
-        {
-                "lat": 26.087143006109688,
-                "lng": 119.25787322318166,
-                "timestamp": "2026-02-28 08:42:29",
-                "timestampMs": 1772239349000,
-                "accuracy": "140",
-                "battery": 100,
-                "index": 13
-        },
-        {
-                "lat": 26.067051407938767,
-                "lng": 119.3048150799222,
-                "timestamp": "2026-02-28 11:44:49",
-                "timestampMs": 1772250289000,
-                "accuracy": "102",
-                "battery": 100,
-                "index": 14
-        },
-        {
-                "lat": 26.066963641189435,
-                "lng": 119.30367321612016,
-                "timestamp": "2026-02-28 12:05:07",
-                "timestampMs": 1772251507000,
-                "accuracy": "59",
-                "battery": 100,
-                "index": 15
-        },
-        {
-                "lat": 26.06289015212778,
-                "lng": 119.29476950387694,
-                "timestamp": "2026-02-28 12:09:49",
-                "timestampMs": 1772251789000,
-                "accuracy": "98",
-                "battery": 100,
-                "index": 16
-        },
-        {
-                "lat": 26.08744583817722,
-                "lng": 119.25811326009877,
-                "timestamp": "2026-02-28 12:33:30",
-                "timestampMs": 1772253210000,
-                "accuracy": "98",
-                "battery": 100,
-                "index": 17
-        },
-        {
-                "lat": 26.088073694583723,
-                "lng": 119.25972346361257,
-                "timestamp": "2026-02-28 17:58:21",
-                "timestampMs": 1772272701000,
-                "accuracy": "108",
-                "battery": 100,
-                "index": 18
-        },
-        {
-                "lat": 26.10018898608532,
-                "lng": 119.28273177449611,
-                "timestamp": "2026-03-02 08:22:11",
-                "timestampMs": 1772410931000,
-                "accuracy": "112",
-                "battery": 100,
-                "index": 19
-        },
-        {
-                "lat": 26.098279705710127,
-                "lng": 119.2925391278155,
-                "timestamp": "2026-03-02 08:25:07",
-                "timestampMs": 1772411107000,
-                "accuracy": "99",
-                "battery": 100,
-                "index": 20
-        },
-        {
-                "lat": 26.09819150277829,
-                "lng": 119.293845877838,
-                "timestamp": "2026-03-02 08:26:53",
-                "timestampMs": 1772411213000,
-                "accuracy": "80",
-                "battery": 100,
-                "index": 21
-        },
-        {
-                "lat": 26.09922446941268,
-                "lng": 119.2935805946618,
-                "timestamp": "2026-03-02 08:28:47",
-                "timestampMs": 1772411327000,
-                "accuracy": "206",
-                "battery": 100,
-                "index": 22
-        },
-        {
-                "lat": 26.099514387396145,
-                "lng": 119.29655477287258,
-                "timestamp": "2026-03-02 08:29:04",
-                "timestampMs": 1772411344000,
-                "accuracy": "121",
-                "battery": 100,
-                "index": 23
-        },
-        {
-                "lat": 26.102230240958555,
-                "lng": 119.30609984421068,
-                "timestamp": "2026-03-02 08:33:10",
-                "timestampMs": 1772411590000,
-                "accuracy": "129",
-                "battery": 100,
-                "index": 24
-        },
-        {
-                "lat": 26.099702235996638,
-                "lng": 119.30930509690312,
-                "timestamp": "2026-03-02 08:35:33",
-                "timestampMs": 1772411733000,
-                "accuracy": "78",
-                "battery": 100,
-                "index": 25
-        },
-        {
-                "lat": 26.09411740816763,
-                "lng": 119.30960519666117,
-                "timestamp": "2026-03-02 16:34:54",
-                "timestampMs": 1772440494000,
-                "accuracy": "143",
-                "battery": 100,
-                "index": 26
-        },
-        {
-                "lat": 26.094454178280007,
-                "lng": 119.31018623238636,
-                "timestamp": "2026-03-02 17:19:46",
-                "timestampMs": 1772443186000,
-                "accuracy": "126",
-                "battery": 100,
-                "index": 27
-        },
-        {
-                "lat": 26.101607178508466,
-                "lng": 119.30268423043363,
-                "timestamp": "2026-03-02 17:53:10",
-                "timestampMs": 1772445190000,
-                "accuracy": "69",
-                "battery": 100,
-                "index": 28
-        },
-        {
-                "lat": 26.100751084233977,
-                "lng": 119.29897242110036,
-                "timestamp": "2026-03-02 17:54:15",
-                "timestampMs": 1772445255000,
-                "accuracy": "69",
-                "battery": 100,
-                "index": 29
-        },
-        {
-                "lat": 26.100143410470874,
-                "lng": 119.29755627424444,
-                "timestamp": "2026-03-02 17:54:37",
-                "timestampMs": 1772445277000,
-                "accuracy": "70",
-                "battery": 100,
-                "index": 30
-        },
-        {
-                "lat": 26.09962367959113,
-                "lng": 119.2916580724347,
-                "timestamp": "2026-03-02 17:58:44",
-                "timestampMs": 1772445524000,
-                "accuracy": "99",
-                "battery": 100,
-                "index": 31
-        },
-        {
-                "lat": 26.100432823853403,
-                "lng": 119.29061679668744,
-                "timestamp": "2026-03-02 17:59:01",
-                "timestampMs": 1772445541000,
-                "accuracy": "151",
-                "battery": 100,
-                "index": 32
-        },
-        {
-                "lat": 26.094145734810926,
-                "lng": 119.26355471399928,
-                "timestamp": "2026-03-02 18:08:26",
-                "timestampMs": 1772446106000,
-                "accuracy": "135",
-                "battery": 100,
-                "index": 33
-        },
-        {
-                "lat": 26.097669974156464,
-                "lng": 119.28105594042593,
-                "timestamp": "2026-03-03 08:26:31",
-                "timestampMs": 1772497591000,
-                "accuracy": "111",
-                "battery": 100,
-                "index": 34
-        },
-        {
-                "lat": 26.098943448254676,
-                "lng": 119.29190834751617,
-                "timestamp": "2026-03-03 08:31:16",
-                "timestampMs": 1772497876000,
-                "accuracy": "113",
-                "battery": 100,
-                "index": 35
-        },
-        {
-                "lat": 26.097788542371653,
-                "lng": 119.29292961071191,
-                "timestamp": "2026-03-03 08:32:08",
-                "timestampMs": 1772497928000,
-                "accuracy": "182",
-                "battery": 100,
-                "index": 36
-        },
-        {
-                "lat": 26.099215036373707,
-                "lng": 119.29616819632153,
-                "timestamp": "2026-03-03 08:34:00",
-                "timestampMs": 1772498040000,
-                "accuracy": "84",
-                "battery": 100,
-                "index": 37
-        },
-        {
-                "lat": 26.10201473658664,
-                "lng": 119.30508815282016,
-                "timestamp": "2026-03-03 08:36:31",
-                "timestampMs": 1772498191000,
-                "accuracy": "137",
-                "battery": 100,
-                "index": 38
-        },
-        {
-                "lat": 26.102043142089553,
-                "lng": 119.305964604985,
-                "timestamp": "2026-03-03 08:36:52",
-                "timestampMs": 1772498212000,
-                "accuracy": "85",
-                "battery": 100,
-                "index": 39
-        },
-        {
-                "lat": 26.100677377435574,
-                "lng": 119.30917494539221,
-                "timestamp": "2026-03-03 08:42:20",
-                "timestampMs": 1772498540000,
-                "accuracy": "151",
-                "battery": 100,
-                "index": 40
-        },
-        {
-                "lat": 26.09439561145413,
-                "lng": 119.31041663029046,
-                "timestamp": "2026-03-03 13:22:15",
-                "timestampMs": 1772515335000,
-                "accuracy": "99",
-                "battery": 100,
-                "index": 41
-        },
-        {
-                "lat": 26.09994245811219,
-                "lng": 119.3059293886051,
-                "timestamp": "2026-03-03 17:24:21",
-                "timestampMs": 1772529861000,
-                "accuracy": "171",
-                "battery": 100,
-                "index": 42
-        },
-        {
-                "lat": 26.09912320099729,
-                "lng": 119.29180823032922,
-                "timestamp": "2026-03-03 17:31:46",
-                "timestampMs": 1772530306000,
-                "accuracy": "176",
-                "battery": 100,
-                "index": 43
-        },
-        {
-                "lat": 26.100005616366285,
-                "lng": 119.28224727500357,
-                "timestamp": "2026-03-03 17:36:55",
-                "timestampMs": 1772530615000,
-                "accuracy": "60",
-                "battery": 100,
-                "index": 44
-        },
-        {
-                "lat": 26.095081189376742,
-                "lng": 119.27177847515794,
-                "timestamp": "2026-03-03 17:39:57",
-                "timestampMs": 1772530797000,
-                "accuracy": "83",
-                "battery": 100,
-                "index": 45
-        },
-        {
-                "lat": 26.09480201030038,
-                "lng": 119.26542536713573,
-                "timestamp": "2026-03-03 17:41:30",
-                "timestampMs": 1772530890000,
-                "accuracy": "167",
-                "battery": 100,
-                "index": 46
-        },
-        {
-                "lat": 26.099732094848623,
-                "lng": 119.29125756266676,
-                "timestamp": "2026-03-04 08:26:35",
-                "timestampMs": 1772583995000,
-                "accuracy": "102",
-                "battery": 100,
-                "index": 47
-        },
-        {
-                "lat": 26.10071704130491,
-                "lng": 119.29892835237776,
-                "timestamp": "2026-03-04 08:29:47",
-                "timestampMs": 1772584187000,
-                "accuracy": "145",
-                "battery": 100,
-                "index": 48
-        },
-        {
-                "lat": 26.10028082865305,
-                "lng": 119.29790679980346,
-                "timestamp": "2026-03-04 08:29:50",
-                "timestampMs": 1772584190000,
-                "accuracy": "128",
-                "battery": 100,
-                "index": 49
-        },
-        {
-                "lat": 26.1008485049806,
-                "lng": 119.29929892017877,
-                "timestamp": "2026-03-04 08:30:05",
-                "timestampMs": 1772584205000,
-                "accuracy": "83",
-                "battery": 100,
-                "index": 50
-        },
-        {
-                "lat": 26.094489368467823,
-                "lng": 119.30972543321326,
-                "timestamp": "2026-03-04 08:39:56",
-                "timestampMs": 1772584796000,
-                "accuracy": "100",
-                "battery": 100,
-                "index": 51
-        },
-        {
-                "lat": 26.094287510736578,
-                "lng": 119.31031644711776,
-                "timestamp": "2026-03-04 13:18:33",
-                "timestampMs": 1772601513000,
-                "accuracy": "86",
-                "battery": 100,
-                "index": 52
-        },
-        {
-                "lat": 26.09875227144481,
-                "lng": 119.30656035245683,
-                "timestamp": "2026-03-04 17:48:22",
-                "timestampMs": 1772617702000,
-                "accuracy": "80",
-                "battery": 100,
-                "index": 53
-        },
-        {
-                "lat": 26.101207022375466,
-                "lng": 119.28957555141965,
-                "timestamp": "2026-03-04 17:59:19",
-                "timestampMs": 1772618359000,
-                "accuracy": "93",
-                "battery": 100,
-                "index": 54
-        },
-        {
-                "lat": 26.10123123573047,
-                "lng": 119.28549077137383,
-                "timestamp": "2026-03-04 18:00:26",
-                "timestampMs": 1772618426000,
-                "accuracy": "92",
-                "battery": 100,
-                "index": 55
-        },
-        {
-                "lat": 26.10146771060302,
-                "lng": 119.28229743439162,
-                "timestamp": "2026-03-04 18:01:18",
-                "timestampMs": 1772618478000,
-                "accuracy": "122",
-                "battery": 100,
-                "index": 56
-        },
-        {
-                "lat": 26.101124290451896,
-                "lng": 119.28361875475038,
-                "timestamp": "2026-03-04 18:02:29",
-                "timestampMs": 1772618549000,
-                "accuracy": "122",
-                "battery": 100,
-                "index": 57
-        },
-        {
-                "lat": 26.09464363440891,
-                "lng": 119.26662181502634,
-                "timestamp": "2026-03-04 18:07:03",
-                "timestampMs": 1772618823000,
-                "accuracy": "107",
-                "battery": 100,
-                "index": 58
-        },
-        {
-                "lat": 26.0945627846197,
-                "lng": 119.26445501838063,
-                "timestamp": "2026-03-04 18:07:33",
-                "timestampMs": 1772618853000,
-                "accuracy": "57",
-                "battery": 100,
-                "index": 59
-        },
-        {
-                "lat": 26.087827815913577,
-                "lng": 119.25951341880618,
-                "timestamp": "2026-03-04 18:28:35",
-                "timestampMs": 1772620115000,
-                "accuracy": "200",
-                "battery": 100,
-                "index": 60
-        },
-        {
-                "lat": 26.099040848797976,
-                "lng": 119.28184680740253,
-                "timestamp": "2026-03-05 08:27:23",
-                "timestampMs": 1772670443000,
-                "accuracy": "66",
-                "battery": 100,
-                "index": 61
-        },
-        {
-                "lat": 26.100398926349623,
-                "lng": 119.28280786724336,
-                "timestamp": "2026-03-05 08:28:29",
-                "timestampMs": 1772670509000,
-                "accuracy": "124",
-                "battery": 100,
-                "index": 62
-        },
-        {
-                "lat": 26.101012092208457,
-                "lng": 119.28523046863444,
-                "timestamp": "2026-03-05 08:29:12",
-                "timestampMs": 1772670552000,
-                "accuracy": "129",
-                "battery": 100,
-                "index": 63
-        },
-        {
-                "lat": 26.100585322233467,
-                "lng": 119.29029640354189,
-                "timestamp": "2026-03-05 08:30:25",
-                "timestampMs": 1772670625000,
-                "accuracy": "74",
-                "battery": 100,
-                "index": 64
-        },
-        {
-                "lat": 26.09902048869035,
-                "lng": 119.29197844494992,
-                "timestamp": "2026-03-05 08:31:12",
-                "timestampMs": 1772670672000,
-                "accuracy": "113",
-                "battery": 100,
-                "index": 65
-        },
-        {
-                "lat": 26.098182454660474,
-                "lng": 119.29229880289336,
-                "timestamp": "2026-03-05 08:31:57",
-                "timestampMs": 1772670717000,
-                "accuracy": "162",
-                "battery": 100,
-                "index": 66
-        },
-        {
-                "lat": 26.09812394869551,
-                "lng": 119.29340026818737,
-                "timestamp": "2026-03-05 08:33:35",
-                "timestampMs": 1772670815000,
-                "accuracy": "187",
-                "battery": 100,
-                "index": 67
-        },
-        {
-                "lat": 26.099957171161158,
-                "lng": 119.3093652200191,
-                "timestamp": "2026-03-05 08:39:03",
-                "timestampMs": 1772671143000,
-                "accuracy": "86",
-                "battery": 100,
-                "index": 68
-        },
-        {
-                "lat": 26.09905100236049,
-                "lng": 119.30950539452208,
-                "timestamp": "2026-03-05 08:40:32",
-                "timestampMs": 1772671232000,
-                "accuracy": "91",
-                "battery": 100,
-                "index": 69
-        },
-        {
-                "lat": 26.094408438172806,
-                "lng": 119.31032046322122,
-                "timestamp": "2026-03-05 13:14:23",
-                "timestampMs": 1772687663000,
-                "accuracy": "89",
-                "battery": 100,
-                "index": 70
-        },
-        {
-                "lat": 26.102332830213776,
-                "lng": 119.30588950186623,
-                "timestamp": "2026-03-05 17:45:24",
-                "timestampMs": 1772703924000,
-                "accuracy": "67",
-                "battery": 100,
-                "index": 71
-        },
-        {
-                "lat": 26.09746658733939,
-                "lng": 119.30623971963458,
-                "timestamp": "2026-03-05 17:47:55",
-                "timestampMs": 1772704075000,
-                "accuracy": "70",
-                "battery": 100,
-                "index": 72
-        },
-        {
-                "lat": 26.100928261756412,
-                "lng": 119.28346858407276,
-                "timestamp": "2026-03-05 17:53:09",
-                "timestampMs": 1772704389000,
-                "accuracy": "74",
-                "battery": 100,
-                "index": 73
-        },
-        {
-                "lat": 26.1000458167602,
-                "lng": 119.2824725028192,
-                "timestamp": "2026-03-05 17:54:21",
-                "timestampMs": 1772704461000,
-                "accuracy": "84",
-                "battery": 100,
-                "index": 74
-        },
-        {
-                "lat": 26.097663802423373,
-                "lng": 119.27870379755694,
-                "timestamp": "2026-03-05 17:55:44",
-                "timestampMs": 1772704544000,
-                "accuracy": "56",
-                "battery": 100,
-                "index": 75
-        },
-        {
-                "lat": 26.09080720318659,
-                "lng": 119.26110388633437,
-                "timestamp": "2026-03-06 08:17:25",
-                "timestampMs": 1772756245000,
-                "accuracy": "95",
-                "battery": 100,
-                "index": 76
-        },
-        {
-                "lat": 26.097956326477707,
-                "lng": 119.29284951632333,
-                "timestamp": "2026-03-06 08:29:12",
-                "timestampMs": 1772756952000,
-                "accuracy": "104",
-                "battery": 100,
-                "index": 77
-        },
-        {
-                "lat": 26.099404998217366,
-                "lng": 119.29622929787807,
-                "timestamp": "2026-03-06 08:30:47",
-                "timestampMs": 1772757047000,
-                "accuracy": "159",
-                "battery": 100,
-                "index": 78
-        },
-        {
-                "lat": 26.10186705848509,
-                "lng": 119.30460735319195,
-                "timestamp": "2026-03-06 08:33:56",
-                "timestampMs": 1772757236000,
-                "accuracy": "69",
-                "battery": 100,
-                "index": 79
-        },
-        {
-                "lat": 26.102080261553226,
-                "lng": 119.30543873582315,
-                "timestamp": "2026-03-06 08:34:10",
-                "timestampMs": 1772757250000,
-                "accuracy": "91",
-                "battery": 100,
-                "index": 80
-        },
-        {
-                "lat": 26.10247786634442,
-                "lng": 119.3059696460305,
-                "timestamp": "2026-03-06 08:35:14",
-                "timestampMs": 1772757314000,
-                "accuracy": "118",
-                "battery": 100,
-                "index": 81
-        },
-        {
-                "lat": 26.09728267225099,
-                "lng": 119.30980578270653,
-                "timestamp": "2026-03-06 08:38:54",
-                "timestampMs": 1772757534000,
-                "accuracy": "67",
-                "battery": 100,
-                "index": 82
-        },
-        {
-                "lat": 26.09432802132635,
-                "lng": 119.31004597845656,
-                "timestamp": "2026-03-06 11:29:43",
-                "timestampMs": 1772767783000,
-                "accuracy": "85",
-                "battery": 100,
-                "index": 83
-        },
-        {
-                "lat": 26.09534760034967,
-                "lng": 119.30960528927861,
-                "timestamp": "2026-03-06 12:21:04",
-                "timestampMs": 1772770864000,
-                "accuracy": "204",
-                "battery": 100,
-                "index": 84
-        },
-        {
-                "lat": 26.094627236126232,
-                "lng": 119.31028642022233,
-                "timestamp": "2026-03-06 13:11:57",
-                "timestampMs": 1772773917000,
-                "accuracy": "83",
-                "battery": 100,
-                "index": 85
-        },
-        {
-                "lat": 26.09409289622695,
-                "lng": 119.31046669507822,
-                "timestamp": "2026-03-06 13:46:25",
-                "timestampMs": 1772775985000,
-                "accuracy": "120",
-                "battery": 0,
-                "index": 86
-        },
-        {
-                "lat": 26.09449160604268,
-                "lng": 119.3098656770156,
-                "timestamp": "2026-03-06 14:15:12",
-                "timestampMs": 1772777712000,
-                "accuracy": "88",
-                "battery": 100,
-                "index": 87
-        },
-        {
-                "lat": 26.09443531070529,
-                "lng": 119.31025635331088,
-                "timestamp": "2026-03-06 16:49:26",
-                "timestampMs": 1772786966000,
-                "accuracy": "105",
-                "battery": 0,
-                "index": 88
-        },
-        {
-                "lat": 26.09478312437754,
-                "lng": 119.30969540316809,
-                "timestamp": "2026-03-06 17:22:20",
-                "timestampMs": 1772788940000,
-                "accuracy": "105",
-                "battery": 100,
-                "index": 89
-        },
-        {
-                "lat": 26.09434769447682,
-                "lng": 119.3104466792263,
-                "timestamp": "2026-03-06 17:39:22",
-                "timestampMs": 1772789962000,
-                "accuracy": "116",
-                "battery": 0,
-                "index": 90
-        },
-        {
-                "lat": 26.101122260352852,
-                "lng": 119.28358872334007,
-                "timestamp": "2026-03-06 17:56:31",
-                "timestampMs": 1772790991000,
-                "accuracy": "105",
-                "battery": 100,
-                "index": 91
-        },
-        {
-                "lat": 26.084794376692138,
-                "lng": 119.2558770201651,
-                "timestamp": "2026-03-07 15:53:35",
-                "timestampMs": 1772870015000,
-                "accuracy": "55",
-                "battery": 100,
-                "index": 92
-        },
-        {
-                "lat": 26.088198252567953,
-                "lng": 119.25739328061202,
-                "timestamp": "2026-03-07 15:57:23",
-                "timestampMs": 1772870243000,
-                "accuracy": "61",
-                "battery": 100,
-                "index": 93
-        },
-        {
-                "lat": 26.08360314479988,
-                "lng": 119.25543294718265,
-                "timestamp": "2026-03-07 17:42:57",
-                "timestampMs": 1772876577000,
-                "accuracy": "73",
-                "battery": 100,
-                "index": 94
-        },
-        {
-                "lat": 26.08797267932083,
-                "lng": 119.25929340389078,
-                "timestamp": "2026-03-08 10:48:57",
-                "timestampMs": 1772938137000,
-                "accuracy": "123",
-                "battery": 100,
-                "index": 95
-        },
-        {
-                "lat": 26.10025494905676,
-                "lng": 119.28273778551282,
-                "timestamp": "2026-03-09 08:28:43",
-                "timestampMs": 1773016123000,
-                "accuracy": "106",
-                "battery": 100,
-                "index": 96
-        },
-        {
-                "lat": 26.101193525097152,
-                "lng": 119.28388503843945,
-                "timestamp": "2026-03-09 08:29:09",
-                "timestampMs": 1773016149000,
-                "accuracy": "95",
-                "battery": 100,
-                "index": 97
-        },
-        {
-                "lat": 26.09815527728274,
-                "lng": 119.29655467079277,
-                "timestamp": "2026-03-09 08:30:59",
-                "timestampMs": 1773016259000,
-                "accuracy": "128",
-                "battery": 100,
-                "index": 98
-        },
-        {
-                "lat": 26.098168628762778,
-                "lng": 119.29242496839512,
-                "timestamp": "2026-03-09 08:32:02",
-                "timestampMs": 1773016322000,
-                "accuracy": "137",
-                "battery": 100,
-                "index": 99
-        },
-        {
-                "lat": 26.094216752405483,
-                "lng": 119.30984562149561,
-                "timestamp": "2026-03-09 08:56:03",
-                "timestampMs": 1773017763000,
-                "accuracy": "106",
-                "battery": 100,
-                "index": 100
-        },
-        {
-                "lat": 26.09438284842752,
-                "lng": 119.30996584306573,
-                "timestamp": "2026-03-09 15:44:45",
-                "timestampMs": 1773042285000,
-                "accuracy": "92",
-                "battery": 100,
-                "index": 101
-        }
-];
+        // 轨迹点数据（将从JavaScript数据文件加载）
+        let trackPoints = [];
         
         // 地图相关变量
         let map;
@@ -1292,6 +383,131 @@
         let maxTimestamp = 0;
         let timelineSlider = null;
         let isTimelineDragging = false;
+        
+        // 坐标转换函数（WGS84转GCJ02）
+        function wgs84ToGcj02(lng, lat) {
+            const a = 6378245.0;
+            const ee = 0.00669342162296594323;
+            
+            function transformLat(x, y) {
+                let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+                ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+                ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+                ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+                return ret;
+            }
+            
+            function transformLng(x, y) {
+                let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+                ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+                ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+                ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+                return ret;
+            }
+            
+            let dLat = transformLat(lng - 105.0, lat - 35.0);
+            let dLng = transformLng(lng - 105.0, lat - 35.0);
+            let radLat = lat / 180.0 * Math.PI;
+            let magic = Math.sin(radLat);
+            magic = 1 - ee * magic * magic;
+            let sqrtMagic = Math.sqrt(magic);
+            dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI);
+            dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * Math.PI);
+            return [lng + dLng, lat + dLat];
+        }
+        
+        // 解析时间戳字符串为毫秒时间戳
+        function parseTimestampToMs(timestampStr) {
+            if (!timestampStr) return 0;
+            try {
+                // 格式：YYYY-MM-DD HH:MM:SS
+                const parts = timestampStr.split(' ');
+                if (parts.length === 2) {
+                    const datePart = parts[0].split('-');
+                    const timePart = parts[1].split(':');
+                    const dt = new Date(
+                        parseInt(datePart[0]),
+                        parseInt(datePart[1]) - 1,
+                        parseInt(datePart[2]),
+                        parseInt(timePart[0]),
+                        parseInt(timePart[1]),
+                        parseInt(timePart[2])
+                    );
+                    return dt.getTime();
+                }
+            } catch (e) {
+                console.error('解析时间戳失败:', timestampStr, e);
+            }
+            return 0;
+        }
+        
+        // 加载轨迹数据（从JavaScript数据文件）
+        function loadTrackData() {
+            try {
+                document.getElementById('status').textContent = '正在加载数据...';
+                
+                // 检查全局变量 trackData 是否存在
+                if (typeof trackData === 'undefined') {
+                    throw new Error('数据文件未加载，请确保 track_data.js 文件存在');
+                }
+                
+                const data = trackData;
+                
+                // 处理轨迹点数据
+                const rawPoints = data.track_points || [];
+                trackPoints = [];
+                
+                for (let i = 0; i < rawPoints.length; i++) {
+                    const point = rawPoints[i];
+                    let lat = point.latitude || 0;
+                    let lng = point.longitude || 0;
+                    const timestamp = point.timestamp || '';
+                    const accuracy = point.accuracy || 'N/A';
+                    const battery = point.batteryLevel || 'N/A';
+                    
+                    // 坐标转换
+                    if (lat !== 0 && lng !== 0) {
+                        [lng, lat] = wgs84ToGcj02(lng, lat);
+                    }
+                    
+                    // 时间戳转换
+                    const timestampMs = parseTimestampToMs(timestamp);
+                    
+                    trackPoints.push({
+                        lat: lat,
+                        lng: lng,
+                        timestamp: timestamp,
+                        timestampMs: timestampMs,
+                        accuracy: accuracy,
+                        battery: battery,
+                        index: i + 1
+                    });
+                }
+                
+                // 更新设备信息显示
+                const deviceInfo = data.device_info || {};
+                const deviceName = deviceInfo.name || '未知设备';
+                const deviceSn = deviceInfo.sn || 'N/A';
+                document.querySelector('.header h1').textContent = '📍 轨迹回放';
+                document.querySelector('.header-info').textContent = 
+                    `设备: ${deviceName} (SN: ${deviceSn}) | 总点数: ${trackPoints.length}`;
+                
+                document.getElementById('status').textContent = '数据加载完成';
+                
+                // 如果地图已初始化，重新绘制轨迹
+                if (map) {
+                    drawTrack();
+                    initTimeline();
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('status').textContent = '加载数据失败: ' + error.message;
+                document.getElementById('status').classList.add('active');
+                return false;
+            }
+        }
         
         // 初始化时间轴
         function initTimeline() {
@@ -1357,6 +573,45 @@
             });
         }
         
+        // 绘制轨迹线
+        function drawTrack() {
+            if (!map || trackPoints.length === 0) return;
+            
+            // 移除旧的轨迹线
+            if (polyline) {
+                map.remove(polyline);
+                polyline = null;
+            }
+            
+            // 绘制新的轨迹线
+            const path = trackPoints.map(p => [p.lng, p.lat]);
+            polyline = new AMap.Polyline({
+                path: path,
+                isOutline: true,
+                outlineColor: '#ffeeff',
+                borderWeight: 3,
+                strokeColor: '#3366FF',
+                strokeOpacity: 0.6,
+                strokeWeight: 3,
+                lineJoin: 'round',
+                lineCap: 'round',
+                zIndex: 50
+            });
+            map.add(polyline);
+            
+            // 自适应显示
+            map.setFitView([polyline]);
+            
+            // 更新地图中心点
+            if (trackPoints.length > 0) {
+                const lats = trackPoints.map(p => p.lat);
+                const lngs = trackPoints.map(p => p.lng);
+                const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+                const centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+                map.setCenter([centerLng, centerLat]);
+            }
+        }
+        
         // 跳转到指定数据点
         function jumpToPoint(index) {
             if (index < 0 || index >= trackPoints.length) return;
@@ -1386,7 +641,7 @@
         function initMap() {
             map = new AMap.Map('mapContainer', {
                 zoom: 15,
-                center: [119.2898118463598, 26.093938763058436],
+                center: [119.29020338034412, 26.093943583095296],
                 mapStyle: 'amap://styles/normal'
             });
             
@@ -1403,27 +658,6 @@
                     map.addControl(toolbar);
                 });
                 
-                // 绘制完整轨迹线
-                if (trackPoints.length > 0) {
-                    const path = trackPoints.map(p => [p.lng, p.lat]);
-                    polyline = new AMap.Polyline({
-                        path: path,
-                        isOutline: true,
-                        outlineColor: '#ffeeff',
-                        borderWeight: 3,
-                        strokeColor: '#3366FF',
-                        strokeOpacity: 0.6,
-                        strokeWeight: 3,
-                        lineJoin: 'round',
-                        lineCap: 'round',
-                        zIndex: 50
-                    });
-                    map.add(polyline);
-                    
-                    // 自适应显示
-                    map.setFitView([polyline]);
-                }
-                
                 // 创建标记点
                 marker = new AMap.Marker({
                     icon: new AMap.Icon({
@@ -1437,11 +671,18 @@
                 });
                 map.add(marker);
                 
-                // 更新状态
-                document.getElementById('status').textContent = '准备就绪';
-                
-                // 初始化时间轴
-                initTimeline();
+                // 加载轨迹数据（数据文件通过script标签已加载，这里直接处理）
+                const loaded = loadTrackData();
+                if (loaded && trackPoints.length > 0) {
+                    // 数据加载成功后，绘制轨迹
+                    drawTrack();
+                    // 初始化时间轴
+                    initTimeline();
+                    document.getElementById('status').textContent = '准备就绪';
+                } else {
+                    document.getElementById('status').textContent = '数据加载失败，请检查数据文件';
+                    document.getElementById('status').classList.add('active');
+                }
             });
         }
         
@@ -1675,10 +916,13 @@
             }
         }
         
-        // 页面加载完成后初始化地图
+        // 页面加载完成后初始化
         window.onload = function() {
-            initMap();
+            // 初始化信息面板拖拽功能
             initInfoPanelDrag();
+            
+            // 初始化地图（地图加载完成后会自动加载数据）
+            initMap();
         };
     </script>
 </body>
