@@ -496,6 +496,7 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             <button class="btn-secondary" onclick="pauseReplay()">⏸ 暂停</button>
             <button class="btn-secondary" onclick="stopReplay()">⏹ 停止</button>
             <button class="btn-secondary" onclick="resetReplay()">↺ 重置</button>
+            <button class="btn-secondary" onclick="reloadData()" title="重新加载数据文件">🔄 刷新数据</button>
         </div>
         
         <div class="speed-control">
@@ -632,6 +633,9 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             return 0;
         }}
         
+        // 数据文件路径
+        const DATA_FILE_NAME = '{js_data_file_name if js_data_file_name else ""}';
+        
         // 加载轨迹数据（从JavaScript数据文件）
         function loadTrackData() {{
             try {{
@@ -639,7 +643,7 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                 
                 // 检查全局变量 trackData 是否存在
                 if (typeof trackData === 'undefined') {{
-                    throw new Error('数据文件未加载，请确保 track_data.js 文件存在');
+                    throw new Error('数据文件未加载，请确保数据文件存在');
                 }}
                 
                 const data = trackData;
@@ -675,21 +679,30 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                     }});
                 }}
                 
-                // 更新设备信息显示
+                // 动态更新设备信息显示（根据实际加载的数据）
                 const deviceInfo = data.device_info || {{}};
                 const deviceName = deviceInfo.name || '未知设备';
                 const deviceSn = deviceInfo.sn || 'N/A';
+                const totalPoints = trackPoints.length;  // 使用实际加载的点数
+                
                 document.querySelector('.header h1').textContent = '📍 轨迹回放';
                 document.querySelector('.header-info').textContent = 
-                    `设备: ${{deviceName}} (SN: ${{deviceSn}}) | 总点数: ${{trackPoints.length}}`;
+                    `设备: ${{deviceName}} (SN: ${{deviceSn}}) | 总点数: ${{totalPoints}}`;
                 
-                document.getElementById('status').textContent = '数据加载完成';
-                
-                // 如果地图已初始化，重新绘制轨迹
+                // 如果地图已初始化，重新绘制轨迹（会自动重新计算中心点）
                 if (map) {{
+                    // 停止当前回放
+                    stopReplay();
+                    resetReplay();
+                    
+                    // 重新绘制轨迹（会根据新数据计算中心点）
                     drawTrack();
+                    
+                    // 重新初始化时间轴
                     initTimeline();
                 }}
+                
+                document.getElementById('status').textContent = `数据加载完成（共 ${{totalPoints}} 个轨迹点）`;
                 
                 return true;
             }} catch (error) {{
@@ -698,6 +711,42 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                 document.getElementById('status').classList.add('active');
                 return false;
             }}
+        }}
+        
+        // 重新加载数据文件
+        function reloadData() {{
+            if (!DATA_FILE_NAME) {{
+                alert('数据文件路径未设置');
+                return;
+            }}
+            
+            // 停止当前回放
+            stopReplay();
+            
+            // 移除旧的 script 标签
+            const oldScript = document.querySelector(`script[src="${{DATA_FILE_NAME}}"]`);
+            if (oldScript) {{
+                oldScript.remove();
+            }}
+            
+            // 清除旧的全局变量
+            if (typeof trackData !== 'undefined') {{
+                delete window.trackData;
+            }}
+            
+            // 创建新的 script 标签（带时间戳避免缓存）
+            const newScript = document.createElement('script');
+            newScript.src = DATA_FILE_NAME + '?t=' + new Date().getTime();
+            newScript.onload = function() {{
+                // 数据文件加载完成后，处理数据
+                loadTrackData();
+            }};
+            newScript.onerror = function() {{
+                document.getElementById('status').textContent = '重新加载数据文件失败';
+                document.getElementById('status').classList.add('active');
+            }};
+            
+            document.head.appendChild(newScript);
         }}
         
         // 初始化时间轴
@@ -764,9 +813,12 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             }});
         }}
         
-        // 绘制轨迹线
+        // 绘制轨迹线（根据实际数据动态计算中心点）
         function drawTrack() {{
-            if (!map || trackPoints.length === 0) return;
+            if (!map || trackPoints.length === 0) {{
+                console.warn('无法绘制轨迹：地图未初始化或没有轨迹点数据');
+                return;
+            }}
             
             // 移除旧的轨迹线
             if (polyline) {{
@@ -790,16 +842,20 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             }});
             map.add(polyline);
             
-            // 自适应显示
-            map.setFitView([polyline]);
+            // 根据实际数据动态计算中心点
+            const lats = trackPoints.map(p => p.lat).filter(lat => lat !== 0);
+            const lngs = trackPoints.map(p => p.lng).filter(lng => lng !== 0);
             
-            // 更新地图中心点
-            if (trackPoints.length > 0) {{
-                const lats = trackPoints.map(p => p.lat);
-                const lngs = trackPoints.map(p => p.lng);
+            if (lats.length > 0 && lngs.length > 0) {{
+                // 计算中心点（平均值）
                 const centerLat = lats.reduce((a, b) => a + b, 0) / lats.length;
                 const centerLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+                
+                // 更新地图中心点
                 map.setCenter([centerLng, centerLat]);
+                
+                // 自适应显示（确保所有轨迹点都在视野内）
+                map.setFitView([polyline], false, [50, 50, 50, 50]);
             }}
         }}
         
@@ -828,11 +884,11 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             }}
         }}
         
-        // 初始化地图
+        // 初始化地图（使用默认中心点，加载数据后会动态调整）
         function initMap() {{
             map = new AMap.Map('mapContainer', {{
                 zoom: 15,
-                center: [{center_lng}, {center_lat}],
+                center: [119.3055, 26.09739],  // 默认中心点（福州），加载数据后会动态调整
                 mapStyle: 'amap://styles/normal'
             }});
             

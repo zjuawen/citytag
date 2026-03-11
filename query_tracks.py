@@ -427,7 +427,7 @@ def clear_token_file() -> bool:
 DEFAULT_USERNAME = "18659179970"
 DEFAULT_PASSWORD = "awen5221"
 DEFAULT_DEVICE_SN = "201607813254"  # 默认设备序列号
-DEFAULT_QUERY_DAYS = 60  # 快捷查询默认查询天数
+DEFAULT_QUERY_DAYS = 30  # 快捷查询默认查询天数
 
 
 def login_and_get_token(username: str = None, password: str = None, save_token: bool = True) -> tuple:
