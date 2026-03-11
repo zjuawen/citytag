@@ -14,16 +14,16 @@ const trackData = {
   },
   "query_info": {
     "sn": "201607813254",
-    "start_time": 1770599538312,
-    "end_time": 1773191538312,
-    "start_time_str": "2026-02-09 09:12:18",
-    "end_time_str": "2026-03-11 09:12:18",
+    "start_time": 1770600437581,
+    "end_time": 1773192437581,
+    "start_time_str": "2026-02-09 09:27:17",
+    "end_time_str": "2026-03-11 09:27:17",
     "time_range_days": 30,
-    "query_time": "2026-03-11 09:12:19",
-    "total_points_before_dedup": 113,
-    "total_points_after_dedup": 119,
+    "query_time": "2026-03-11 09:27:19",
+    "total_points_before_dedup": 118,
+    "total_points_after_dedup": 124,
     "pages_queried": 1,
-    "merged_from_existing": 111
+    "merged_from_existing": 119
   },
   "track_points": [
     {
@@ -1810,6 +1810,81 @@ const trackData = {
       "sn": "201607813254",
       "timestamp": "2026-03-11 07:00:23",
       "updatetime": "2026-03-11 07:56:54"
+    },
+    {
+      "accuracy": "59",
+      "batteryLevel": 100,
+      "confidence": "139",
+      "createtime": "2026-03-11 09:27:19",
+      "datePublished": "2026-03-11 08:29:41",
+      "del": false,
+      "id": 2031542450451554306,
+      "latitude": 26.098232,
+      "latlngtype": 0,
+      "longitude": 119.26715,
+      "sn": "201607813254",
+      "timestamp": "2026-03-11 08:27:45",
+      "updatetime": "2026-03-11 09:27:19"
+    },
+    {
+      "accuracy": "201",
+      "batteryLevel": 100,
+      "confidence": "9",
+      "createtime": "2026-03-11 09:27:19",
+      "datePublished": "2026-03-11 08:29:14",
+      "del": false,
+      "id": 2031542450459942914,
+      "latitude": 26.101057,
+      "latlngtype": 0,
+      "longitude": 119.27375,
+      "sn": "201607813254",
+      "timestamp": "2026-03-11 08:29:14",
+      "updatetime": "2026-03-11 09:27:19"
+    },
+    {
+      "accuracy": "60",
+      "batteryLevel": 100,
+      "confidence": "139",
+      "createtime": "2026-03-11 09:27:19",
+      "datePublished": "2026-03-11 08:57:47",
+      "del": false,
+      "id": 2031542450459942916,
+      "latitude": 26.10431,
+      "latlngtype": 0,
+      "longitude": 119.2806,
+      "sn": "201607813254",
+      "timestamp": "2026-03-11 08:31:34",
+      "updatetime": "2026-03-11 09:27:19"
+    },
+    {
+      "accuracy": "76",
+      "batteryLevel": 100,
+      "confidence": "139",
+      "createtime": "2026-03-11 09:27:19",
+      "datePublished": "2026-03-11 08:49:31",
+      "del": false,
+      "id": 2031542450472525825,
+      "latitude": 26.099173,
+      "latlngtype": 0,
+      "longitude": 119.305,
+      "sn": "201607813254",
+      "timestamp": "2026-03-11 08:43:24",
+      "updatetime": "2026-03-11 09:27:19"
+    },
+    {
+      "accuracy": "70",
+      "batteryLevel": 100,
+      "confidence": "139",
+      "createtime": "2026-03-11 09:27:19",
+      "datePublished": "2026-03-11 09:00:26",
+      "del": false,
+      "id": 2031542450476720129,
+      "latitude": 26.097734,
+      "latlngtype": 0,
+      "longitude": 119.30507,
+      "sn": "201607813254",
+      "timestamp": "2026-03-11 08:50:46",
+      "updatetime": "2026-03-11 09:27:19"
     }
   ]
 };

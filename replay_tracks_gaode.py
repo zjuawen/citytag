@@ -859,15 +859,78 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             }}
         }}
         
+        // 计算两点间的距离（米）
+        function getDistance(lng1, lat1, lng2, lat2) {{
+            const R = 6371000; // 地球半径（米）
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }}
+        
+        // 处理地图点击事件：选中最近的轨迹点
+        function handleMapClick(e) {{
+            if (trackPoints.length === 0) {{
+                console.log('没有轨迹点数据');
+                return;
+            }}
+            
+            const clickLng = e.lnglat.getLng();
+            const clickLat = e.lnglat.getLat();
+            
+            // 容错半径：5000米（5公里），在这个范围内搜索最近的轨迹点
+            const MAX_SEARCH_RADIUS = 5000;
+            
+            // 找到最近的轨迹点
+            let minDistance = Infinity;
+            let nearestIndex = -1;
+            
+            for (let i = 0; i < trackPoints.length; i++) {{
+                const point = trackPoints[i];
+                if (point.lat === 0 || point.lng === 0) continue;
+                
+                const distance = getDistance(clickLng, clickLat, point.lng, point.lat);
+                // 只在容错半径内搜索
+                if (distance <= MAX_SEARCH_RADIUS && distance < minDistance) {{
+                    minDistance = distance;
+                    nearestIndex = i;
+                }}
+            }}
+            
+            if (nearestIndex >= 0) {{
+                // 跳转到最近的轨迹点（不移动地图中心和缩放）
+                jumpToPoint(nearestIndex, false);
+                
+                // 显示提示信息
+                const distanceKm = (minDistance / 1000).toFixed(2);
+                const distanceM = minDistance < 1000 ? Math.round(minDistance) + '米' : distanceKm + '公里';
+                document.getElementById('status').textContent = 
+                    `已选中第 ${{nearestIndex + 1}} 个轨迹点（距离点击位置 ${{distanceM}}）`;
+                document.getElementById('status').classList.remove('active');
+                
+                // 短暂高亮显示
+                setTimeout(() => {{
+                    if (document.getElementById('status').textContent.includes('已选中')) {{
+                        document.getElementById('status').textContent = '准备就绪（点击地图可选择轨迹点）';
+                    }}
+                }}, 3000);
+            }} else {{
+                document.getElementById('status').textContent = `未找到轨迹点（搜索半径：${{MAX_SEARCH_RADIUS / 1000}}公里）`;
+            }}
+        }}
+        
         // 跳转到指定数据点
-        function jumpToPoint(index) {{
+        function jumpToPoint(index, moveCenter = false) {{
             if (index < 0 || index >= trackPoints.length) return;
             
             currentIndex = index;
             const point = trackPoints[index];
             
             // 更新标记点位置
-            updateMarker(point);
+            updateMarker(point, moveCenter);
             
             // 更新进度条
             const progress = ((index + 1) / trackPoints.length) * 100;
@@ -918,6 +981,11 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                 }});
                 map.add(marker);
                 
+                // 添加地图点击事件：选中最近的轨迹点
+                map.on('click', function(e) {{
+                    handleMapClick(e);
+                }});
+                
                 // 加载轨迹数据（数据文件通过script标签已加载，这里直接处理）
                 const loaded = loadTrackData();
                 if (loaded && trackPoints.length > 0) {{
@@ -925,7 +993,7 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                     drawTrack();
                     // 初始化时间轴
                     initTimeline();
-                    document.getElementById('status').textContent = '准备就绪';
+                    document.getElementById('status').textContent = '准备就绪（点击地图可选择轨迹点）';
                 }} else {{
                     document.getElementById('status').textContent = '数据加载失败，请检查数据文件';
                     document.getElementById('status').classList.add('active');
@@ -1022,7 +1090,7 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
         }}
         
         // 更新标记点位置
-        function updateMarker(point) {{
+        function updateMarker(point, moveCenter = false) {{
             if (!map) {{
                 console.error('地图未初始化');
                 return;
@@ -1042,7 +1110,17 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
                 map.add(marker);
             }}
             marker.setPosition([point.lng, point.lat]);
-            // 不移动地图中心，只更新标记点位置
+            
+            // 如果需要移动地图中心（例如点击选点时）
+            if (moveCenter) {{
+                map.setCenter([point.lng, point.lat]);
+                // 如果当前缩放级别太小，适当放大
+                const currentZoom = map.getZoom();
+                if (currentZoom < 16) {{
+                    map.setZoom(16);
+                }}
+            }}
+            
             updateInfoPanel(point);
         }}
         
