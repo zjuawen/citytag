@@ -931,13 +931,32 @@ def quick_query(sn: str = None, output_file: str = "history_tracks.json",
                 
                 print(f"合并完成: 原有 {len(existing_points)} 个点，新增 {len(deduplicated_points)} 个点，合并后 {len(merged_points)} 个点")
         
-        # 保存文件
+        # 保存 JSON 文件
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
         
         file_path = os.path.abspath(output_file)
-        print(f"\n✅ 数据已保存到: {file_path}")
+        print(f"\n✅ JSON 数据已保存到: {file_path}")
         print(f"   总轨迹点数: {len(output_data['track_points'])}")
+        
+        # 同时生成 JS 文件（可以直接通过 script 标签引用）
+        js_file = 'history_tracks_data.js'
+        try:
+            js_content = '// 自动生成的轨迹数据文件（从 ' + output_file + ' 生成）\n'
+            js_content += '// 此文件由 query_tracks.py 自动生成，请勿手动编辑\n'
+            js_content += '// 生成时间: ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n\n'
+            js_content += 'const trackData = ' + json.dumps(output_data, ensure_ascii=False, indent=2) + ';\n'
+            
+            with open(js_file, 'w', encoding='utf-8') as f:
+                f.write(js_content)
+            
+            js_file_path = os.path.abspath(js_file)
+            print(f"✅ JS 数据已保存到: {js_file_path}")
+            print(f"   现在可以通过 <script src=\"{js_file}\"></script> 在 HTML 中引用")
+        except Exception as e:
+            print(f"⚠️  生成 JS 文件失败: {e}")
+            import traceback
+            traceback.print_exc()
         
         # 显示统计信息
         if output_data['track_points']:

@@ -1,5 +1,7 @@
-// 轨迹数据文件（自动生成）
-// 从 history_tracks.json 生成
+// 自动生成的轨迹数据文件（从 history_tracks.json 生成）
+// 此文件由 query_tracks.py 自动生成，请勿手动编辑
+// 生成时间: 2026-03-12 12:29:08
+
 const trackData = {
   "device_info": {
     "sn": "201607813254",
@@ -8,22 +10,22 @@ const trackData = {
     "cid": "0",
     "uid": "242487",
     "status": 1,
-    "timestamp": "2026-03-12 10:39:47",
-    "updatetime": "2026-03-12 10:48:42",
+    "timestamp": "2026-03-12 11:31:30",
+    "updatetime": "2026-03-12 12:25:09",
     "createtime": "2025-10-10 10:53:33"
   },
   "query_info": {
     "sn": "201607813254",
-    "start_time": 1770693497673,
-    "end_time": 1773285497673,
-    "start_time_str": "2026-02-10 11:18:17",
-    "end_time_str": "2026-03-12 11:18:17",
+    "start_time": 1770697745648,
+    "end_time": 1773289745648,
+    "start_time_str": "2026-02-10 12:29:05",
+    "end_time_str": "2026-03-12 12:29:05",
     "time_range_days": 30,
-    "query_time": "2026-03-12 11:18:19",
-    "total_points_before_dedup": 122,
-    "total_points_after_dedup": 137,
+    "query_time": "2026-03-12 12:29:06",
+    "total_points_before_dedup": 120,
+    "total_points_after_dedup": 138,
     "pages_queried": 1,
-    "merged_from_existing": 124
+    "merged_from_existing": 138
   },
   "track_points": [
     {
@@ -2080,6 +2082,21 @@ const trackData = {
       "sn": "201607813254",
       "timestamp": "2026-03-12 10:39:47",
       "updatetime": "2026-03-12 10:48:42"
+    },
+    {
+      "accuracy": "69",
+      "batteryLevel": 100,
+      "confidence": "139",
+      "createtime": "2026-03-12 12:25:10",
+      "datePublished": "2026-03-12 11:44:50",
+      "del": false,
+      "id": 2031949593503768578,
+      "latitude": 26.097284,
+      "latlngtype": 0,
+      "longitude": 119.30582,
+      "sn": "201607813254",
+      "timestamp": "2026-03-12 11:31:30",
+      "updatetime": "2026-03-12 12:25:10"
     }
   ]
 };

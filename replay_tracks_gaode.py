@@ -163,10 +163,9 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
     device_sn = device_info.get('sn', 'N/A')
     total_points = len(track_points)
     
-    # 生成JavaScript数据文件名（与HTML文件同目录）
+    # 生成JavaScript数据文件名（使用固定的文件名，与 query_tracks.py 保持一致）
     output_dir = os.path.dirname(os.path.abspath(output_file)) if os.path.dirname(output_file) else os.getcwd()
-    js_data_file = os.path.splitext(output_file)[0] + '_data.js'
-    js_data_file_name = os.path.basename(js_data_file)
+    js_data_file_name = 'history_tracks_data.js'  # 固定文件名，与 query_tracks.py 保持一致
     js_file_path = os.path.join(output_dir, js_data_file_name)
     
     # 读取JSON文件内容并转换为JavaScript变量
@@ -175,17 +174,21 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
             json_data = json.load(f)
         
         # 生成JavaScript文件内容
-        js_content = f"// 轨迹数据文件（自动生成）\n"
-        js_content += f"// 从 {os.path.basename(json_file_path)} 生成\n"
-        js_content += f"const trackData = {json.dumps(json_data, ensure_ascii=False, indent=2)};\n"
+        js_content = '// 自动生成的轨迹数据文件（从 ' + os.path.basename(json_file_path) + ' 生成）\n'
+        js_content += '// 此文件由 replay_tracks_gaode.py 自动生成，请勿手动编辑\n'
+        js_content += '// 生成时间: ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n\n'
+        js_content += 'const trackData = ' + json.dumps(json_data, ensure_ascii=False, indent=2) + ';\n'
         
         # 写入JavaScript文件
         with open(js_file_path, 'w', encoding='utf-8') as f:
             f.write(js_content)
         
-        print(f"✅ 已生成数据文件: {os.path.abspath(js_file_path)}")
+        print(f"✅ 已生成 JS 数据文件: {os.path.abspath(js_file_path)}")
+        print(f"   现在可以通过 <script src=\"{js_data_file_name}\"></script> 在 HTML 中引用")
     except Exception as e:
-        print(f"⚠️  生成数据文件失败: {e}")
+        print(f"⚠️  生成 JS 数据文件失败: {e}")
+        import traceback
+        traceback.print_exc()
         js_data_file_name = None
     
     # 生成HTML内容
@@ -480,7 +483,7 @@ def generate_html(device_info, query_info, track_points, output_file='track_repl
     <!-- 如果使用测试Key，地图上会显示水印 -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=be36223b9dab65bb6b1f4bd5f9bb9442"></script>
     <script src="https://webapi.amap.com/ui/1.1/main.js"></script>
-    {'<script src="' + js_data_file_name + '"></script>' if js_data_file_name else ''}
+    {'<script src="' + js_data_file_name + '"></script>' if js_data_file_name else '<!-- 数据文件加载失败 -->'}
 </head>
 <body>
     <div class="header">
